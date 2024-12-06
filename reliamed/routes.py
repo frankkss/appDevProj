@@ -1,20 +1,7 @@
-from flask import Flask, render_template
-from flask_sqlalchemy import SQLAlchemy
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///reliamed.db'
-db = SQLAlchemy(app)
+from reliamed import app
+from flask import render_template
+from reliamed.models import Pharmaceuticals
 
-class Pharmaceuticals(db.Model):
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(length=30), nullable=False, unique=True)
-    price = db.Column(db.Integer(), nullable=False)
-    barcode = db.Column(db.String(length=12), nullable=False, unique=True)
-    description = db.Column(db.String(length=1024), nullable=False, unique=True)
-
-    def __repr__(self):
-        return f'Item {self.name}'
-    
-    
 @app.route('/')
 @app.route('/home')
 def home_page():
@@ -22,8 +9,8 @@ def home_page():
 
 @app.route('/market')
 def market_page():
-    items = Pharmaceuticals.query.all()
-    return render_template('market.html', items=items)
+    products = Pharmaceuticals.query.all()
+    return render_template('market.html', products=products)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -49,6 +36,3 @@ def login():
             return render_template('login.html', data=errorData)
     """
     return render_template('login.html')
-
-if __name__ == '__main__':
-    app.run(debug=True)
