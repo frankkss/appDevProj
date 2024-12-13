@@ -1,10 +1,14 @@
 {% extends 'base.html' %}
 {% block title %}
-  Market Page
+Market Page
 {% endblock %}
-
 {% block content %}
-      <table class="table table-hover table-dark">
+<div class="row" style="margin-top:20px; margin-left:10px">
+    <div class="col-8">
+        <h2>Available Pharmaceuticals on the Market</h2>
+        <p>Click on one of the products to start buying</p>
+        <br>
+        <table class="table table-hover table-dark">
         <thead>
             <tr>
                 <!-- Your Columns HERE -->
@@ -17,17 +21,24 @@
         </thead>
         <tbody>
             {% for product in products %}
-              <tr>
-                  <td>{{ product.id }}</td>
-                  <td>{{ product.name }}</td>
-                  <td>{{ product.barcode }}</td>
-                  <td>₱ {{ product.price }}</td>
-                  <td>
-                      <button class="btn btn-outline btn-info">More Info</button>
-                      <button class="btn btn-outline btn-success">Purchase this Item</button>
-                  </td>
-              </tr>
+            <tr>
+                <td>{{ product.id }}</td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.barcode }}</td>
+                <td>₱ {{ product.price }}</td>
+                <td>
+                    <button class="btn btn-outline btn-info">More Info</button>
+                    <button class="btn btn-outline btn-success">Purchase this Item</button>
+                </td>
+            </tr>
             {% endfor %}
         </tbody>
-    </table>
+        </table>
+    </div>
+    <div class="col-4">
+        <h2>Owned Products</h2>
+        <p>Click on sell item to put an item back on the Market</p>
+        <br>
+   </div>
+</div> 
 {% endblock %}
