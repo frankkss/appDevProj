@@ -9,12 +9,15 @@ import os
 app = Flask(__name__)
 # Use DATABASE_URL from environment variables if available, otherwise fallback to local sqlite
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///reliamed.db')
-app.config['SECRET_KEY'] = 'ef3cc4b50e1ffa8bbffa39dd'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
+login_manager.login_view = 'login_page'
+login_manager.login_message_category = "info"
+
 migrate = Migrate(app, db)
 
 from reliamed import routes
