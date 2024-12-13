@@ -1,4 +1,5 @@
 from reliamed import db
+from reliamed import bcrypt
 
 class User(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
@@ -8,6 +9,13 @@ class User(db.Model):
     budget = db.Column(db.Integer(), nullable=False, default=1000)
     products = db.relationship('Pharmaceuticals', backref='owned_user', lazy=True)
 
+    @property
+    def password(self):
+        return self.password
+
+    @password.setter
+    def password(self, plain_text_password):
+        self.password_hash = bcrypt.generate_password_hash(plain_text_password).decode('utf-8')
 class Pharmaceuticals(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(length=30), nullable=False, unique=True)
