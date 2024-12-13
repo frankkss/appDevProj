@@ -3,6 +3,7 @@
 Market Page
 {% endblock %}
 {% block content %}
+
 <div class="row" style="margin-top:20px; margin-left:10px">
     <div class="col-8">
         <h2>Available Pharmaceuticals on the Market</h2>
@@ -21,14 +22,15 @@ Market Page
         </thead>
         <tbody>
             {% for product in products %}
+            {% include 'includes/pharma_modals.html' %}
             <tr>
                 <td>{{ product.id }}</td>
                 <td>{{ product.name }}</td>
                 <td>{{ product.barcode }}</td>
                 <td>₱ {{ product.price }}</td>
                 <td>
-                    <button class="btn btn-outline btn-info">More Info</button>
-                    <button class="btn btn-outline btn-success">Purchase this Item</button>
+                    <button class="btn btn-outline btn-info" data-toggle="modal" data-target="#Modal-MoreInfo-{{ product.id }}">More Info</button>
+                    <button class="btn btn-outline btn-success" data-toggle="modal" data-target="#Modal-PurchaseConfirm-{{ item.id }}">Purchase this Product</button>
                 </td>
             </tr>
             {% endfor %}
