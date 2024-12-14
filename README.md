@@ -20,9 +20,9 @@ $ pip install -r requirements.txt
 ```
 
 ```
-$ set FLASK_APP=reliamed.py
+$ set FLASK_APP=app.py
 ```
 
 ```
-$ set FLASK_APP=reliamed.py
+$ flask run
 ```
