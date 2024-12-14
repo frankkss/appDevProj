@@ -49,7 +49,19 @@
           </button>
         </div>
         <div class="modal-body">
-          Are you sure you want to buy {{ product.name }} for ₱ {{ product.price }} ?
+            <form method="POST"></form>
+                {{ purchase_form.hidden_tag() }}
+                <h4 class="text-center">
+                    Are you sure you want to buy {{ product.name }} for ₱ {{ product.price }} ?
+                </h4>
+                <br>
+                <h6 class="text-center">
+                    By clicking Purchase, you will purchase this product.
+                </h6>
+                <br>
+                <input id="purchased_product" name="purchased_product" type="hidden" value="{{product.name}}">
+                {{ purchase_form.submit(class="btn btn-outline-success btn-block") }}
+            </form>        
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary"

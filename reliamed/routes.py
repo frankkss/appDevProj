@@ -1,7 +1,7 @@
 from reliamed import app
 from flask import render_template, redirect, url_for, flash, request
 from reliamed.models import Pharmaceuticals, User
-from reliamed.forms import RegisterForm, LoginForm
+from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm
 from reliamed import db
 from flask_login import login_user, logout_user, login_required, current_user
 
@@ -13,8 +13,34 @@ def home_page():
 @app.route('/market')
 @login_required
 def market_page():
-    products = Pharmaceuticals.query.all()
-    return render_template('market.html', products=products)
+    purchased_form = PurchaseProductForm()
+    selling_form = SellProductForm()
+    if request.method == "POST":
+        #Purchase Product Logic
+        purchased_product = request.form.get('purchased_product')
+        p_product_object = Pharmaceuticals.query.filter_by(name=purchased_product).first()
+        if p_product_object:
+            if current_user.can_purchase(p_product_object):
+                p_product_object.buy(current_user)
+                flash(f"Congratulations! You purchased {p_product_object.name} for {p_product_object.price}$", category='success')
+            else:
+                flash(f"Unfortunately, you don't have enough money to purchase {p_product_object.name}!", category='danger')
+        #Sell Product Logic
+        sold_product = request.form.get('sold_product')
+        s_product_object = Pharmaceuticals.query.filter_by(name=sold_product).first()
+        if s_product_object:
+            if current_user.can_sell(s_product_object):
+                s_product_object.sell(current_user)
+                flash(f"Congratulations! You sold {s_product_object.name} back to market!", category='success')
+            else:
+                flash(f"Something went wrong with selling {s_product_object.name}", category='danger')
+        
+        return redirect(url_for('market_page'))
+
+    if request.method == "GET":
+        pharmaceuticals = Pharmaceuticals.query.filter_by(owner=None)
+        owned_pharmaceuticals = Pharmaceuticals.query.filter_by(owner=current_user.id)
+        return render_template('market.html', pharmaceuticals=pharmaceuticals, purchased_form=purchased_form, owned_pharmaceuticals=owned_pharmaceuticals, selling_form=selling_form)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_page():
