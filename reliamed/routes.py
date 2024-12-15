@@ -26,14 +26,14 @@ def market_page():
             else:
                 flash(f"Unfortunately, you don't have enough money to purchase {p_product_object.name}!", category='danger')
         #Sell Product Logic
-        sold_product = request.form.get('sold_product')
-        s_product_object = Pharmaceuticals.query.filter_by(name=sold_product).first()
-        if s_product_object:
-            if current_user.can_sell(s_product_object):
-                s_product_object.sell(current_user)
-                flash(f"Congratulations! You sold {s_product_object.name} back to market!", category='success')
+        sold_pharmaceutical = request.form.get('sold_pharmaceutical')
+        s_pharmaceutical_object = Pharmaceuticals.query.filter_by(name=sold_pharmaceutical).first()
+        if s_pharmaceutical_object:
+            if current_user.can_sell(s_pharmaceutical_object):
+                s_pharmaceutical_object.sell(current_user)
+                flash(f"Congratulations! You sold {s_pharmaceutical_object.name} back to market!", category='success')
             else:
-                flash(f"Something went wrong with selling {s_product_object.name}", category='danger')
+                flash(f"Something went wrong with selling {s_pharmaceutical_object.name}", category='danger')
         
         return redirect(url_for('market_page'))
 

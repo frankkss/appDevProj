@@ -39,8 +39,27 @@ Market Page
     </div>
     <div class="col-4">
         <h2>Owned Products</h2>
-        <p>Click on sell item to put an item back on the Market</p>
+        <p>Click on sell product to put product back on the Market</p>
         <br>
-   </div>
-</div> 
+        <div class="row">
+            {% for owned_pharmaceutical in owned_pharmaceuticals%}
+            {% include 'includes/owned_products_modals.html' %}           
+            <div class="col-md-6">
+                <div style="margin-bottom: 5px" class="card text-center bg-dark">
+                     <div class="card-body">
+                         <h5 class="card-title">{{ owned_pharmaceutical.name }}</h5>
+                         <button type="button" class="btn btn-outline-danger" style="margin-bottom: 5px"
+                                 data-toggle="modal" data-target="#Modal-SellingConfirm-{{ owned_pharmaceutical.id }}">
+                             Sell this Product
+                         </button>
+                         <p class="card-text"><strong>
+                             This product costs {{ owned_pharmaceutical.price }}.00 Pesos
+                         </strong></p>
+                     </div>
+                 </div>
+            </div>
+            {% endfor %}
+       </div>
+  </div>
+</div>
 {% endblock %}

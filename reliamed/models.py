@@ -30,6 +30,13 @@ class User(db.Model, UserMixin):
 
     def check_password_correction(self, attempted_password):
         return bcrypt.check_password_hash(self.password_hash, attempted_password)
+    
+    def can_purchase(self, product_obj):
+        return self.budget >= product_obj.price
+    
+    def can_sell(self, product_obj):
+        return product_obj in self.products
+                     
 class Pharmaceuticals(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(length=30), nullable=False, unique=True)
@@ -40,3 +47,13 @@ class Pharmaceuticals(db.Model):
     
     def __repr__(self):
         return f'Pharmaceuticals {self.name}'
+    
+    def buy(self, user):
+        self.owner = user.id
+        user.budget -= self.price
+        db.session.commit()
+
+    def sell(self, user):
+        self.owner = None
+        user.budget += self.price
+        db.session.commit()
