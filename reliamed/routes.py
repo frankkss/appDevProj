@@ -13,7 +13,7 @@ def home_page():
 @app.route('/market', methods=['GET', 'POST'])
 @login_required
 def market_page():
-    purchased_form = PurchaseProductForm()
+    purchase_form = PurchaseProductForm()
     selling_form = SellProductForm()
     if request.method == "POST":
         #Purchase Product Logic
@@ -40,7 +40,7 @@ def market_page():
     if request.method == "GET":
         pharmaceuticals = Pharmaceuticals.query.filter_by(owner=None)
         owned_pharmaceuticals = Pharmaceuticals.query.filter_by(owner=current_user.id)
-        return render_template('market.html', pharmaceuticals=pharmaceuticals, purchased_form=purchased_form, owned_pharmaceuticals=owned_pharmaceuticals, selling_form=selling_form)
+        return render_template('market.html', pharmaceuticals=pharmaceuticals, purchase_form=purchase_form, owned_pharmaceuticals=owned_pharmaceuticals, selling_form=selling_form)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_page():

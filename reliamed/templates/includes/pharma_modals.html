@@ -5,7 +5,7 @@
   </style>
   
   <!-- More Info -->
-  <div class="modal fade" id="Modal-MoreInfo-{{ product.id }}"
+  <div class="modal fade" id="Modal-MoreInfo-{{ pharmaceutical.id }}"
        tabindex="-1"
        aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -13,7 +13,7 @@
         <div class="modal-header">
           <h5 class="modal-title" id="ModalLabel">
             <!-- -->
-            {{ product.name }}
+            {{ pharmaceutical.name }}
           </h5>
           <button type="button" class="close"
                   data-dismiss="modal" aria-label="Close">
@@ -21,7 +21,7 @@
           </button>
         </div>
         <div class="modal-body">
-          {{ product.description }}
+          {{ pharmaceutical.description }}
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary"
@@ -33,7 +33,7 @@
   </div>
   
   <!-- Purchase Confirm -->
-  <div class="modal fade" id="Modal-PurchaseConfirm-{{ product.id }}"
+  <div class="modal fade" id="Modal-PurchaseConfirm-{{ pharmaceutical.id }}"
        tabindex="-1"
        aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -41,7 +41,7 @@
         <div class="modal-header">
           <h5 class="modal-title" id="ModalLabel">
             <!-- -->
-            {{ product.name }}
+            {{ pharmaceutical.name }}
           </h5>
           <button type="button" class="close"
                   data-dismiss="modal" aria-label="Close">
@@ -52,14 +52,14 @@
             <form method="POST"></form>
                 {{ purchase_form.hidden_tag() }}
                 <h4 class="text-center">
-                    Are you sure you want to buy {{ product.name }} for ₱ {{ product.price }} ?
+                    Are you sure you want to buy {{ pharmaceutical.name }} for ₱ {{ pharmaceutical.price }} ?
                 </h4>
                 <br>
                 <h6 class="text-center">
                     By clicking Purchase, you will purchase this product.
                 </h6>
                 <br>
-                <input id="purchased_product" name="purchased_product" type="hidden" value="{{product.name}}">
+                <input id="purchased_product" name="purchased_product" type="hidden" value="{{pharmaceutical.name}}">
                 {{ purchase_form.submit(class="btn btn-outline-success btn-block") }}
             </form>        
         </div>

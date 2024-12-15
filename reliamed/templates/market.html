@@ -21,16 +21,16 @@ Market Page
             </tr>
         </thead>
         <tbody>
-            {% for product in products %}
+            {% for pharmaceutical in pharmaceuticals %}
             {% include 'includes/pharma_modals.html' %}
             <tr>
-                <td>{{ product.id }}</td>
-                <td>{{ product.name }}</td>
-                <td>{{ product.barcode }}</td>
-                <td>₱ {{ product.price }}</td>
+                <td>{{ pharmaceutical.id }}</td>
+                <td>{{ pharmaceutical.name }}</td>
+                <td>{{ pharmaceutical.barcode }}</td>
+                <td>₱ {{ pharmaceutical.price }}</td>
                 <td>
-                    <button class="btn btn-outline btn-info" data-toggle="modal" data-target="#Modal-MoreInfo-{{ product.id }}">More Info</button>
-                    <button class="btn btn-outline btn-success" data-toggle="modal" data-target="#Modal-PurchaseConfirm-{{ product.id }}">Purchase this Product</button>
+                    <button class="btn btn-outline btn-info" data-toggle="modal" data-target="#Modal-MoreInfo-{{ pharmaceutical.id }}">More Info</button>
+                    <button class="btn btn-outline btn-success" data-toggle="modal" data-target="#Modal-PurchaseConfirm-{{ pharmaceutical.id }}">Purchase this Product</button>
                 </td>
             </tr>
             {% endfor %}
@@ -38,7 +38,7 @@ Market Page
         </table>
     </div>
     <div class="col-4">
-        <h2>Owned Products</h2>
+        <h2>Owned Pharmaceuticals</h2>
         <p>Click on sell product to put product back on the Market</p>
         <br>
         <div class="row">
