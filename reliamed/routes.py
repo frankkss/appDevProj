@@ -4,6 +4,7 @@ from reliamed.models import Pharmaceuticals, User
 from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm
 from reliamed import db
 from flask_login import login_user, logout_user, login_required, current_user
+from .trained_model import save_image, predict_image_class, display_uploaded_image  # Import the functions from trained_model.py
 
 @app.route('/')
 @app.route('/home')
@@ -75,6 +76,33 @@ def login_page():
             flash('Username and password are not match! Please try again', category='danger')
 
     return render_template('login.html', form=form)
+
+@app.route('/predict', methods=['GET'])
+@login_required
+def predict():
+    # Render the prediction page where users can upload an image for classification.
+    return render_template('predict.html')
+
+@app.route('/predicted', methods=['POST'])
+def predicted():
+    imagefile = request.files['imagefile']
+    
+    # Save the uploaded image and get its path
+    image_path = save_image(imagefile)
+    print(f"Image saved at: {image_path}")  # Debug statement
+    
+    # Display image
+    disp_uploadedIMG = display_uploaded_image(imagefile)
+    print(f"Image displayed: {disp_uploadedIMG}")
+
+    # Get the prediction
+    predicted_class, confidence_score = predict_image_class(image_path)
+    print(f"Predicted class: {predicted_class}, Confidence Score: {confidence_score}")  # Debug statement
+
+    # Extract the relative path to the image for display
+    relative_image_path = image_path.replace('/workspaces/appDevProj/reliamed/static/', '')
+
+    return render_template('predict.html', prediction_text=f'This medicine is classified as: {predicted_class} ({confidence_score * 100:.2f}%)', image_path=relative_image_path)
 
 @app.route('/logout')
 def logout_page():
