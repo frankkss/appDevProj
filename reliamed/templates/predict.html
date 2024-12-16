@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}
+    Welcome to RELIAMED APP
+{% endblock %}
+{% block content %}
+
+    <h1 class="text-center mt-3">Image Classification</h1>
+    <form action="/predicted" method="post" enctype="multipart/form-data" class="text-center">
+        <input type="file" name="imagefile" required>
+        <input class="btn btn-primary mt-3" type="submit" value="Predict Image">
+    </form>
+
+        {% if prediction_text %}
+            <p class="text-center mt-3">{{ prediction_text }}</p>
+        {% endif %}
+        {% if image_path %}
+            <div class="text-center mt-3">
+                <img src="{{ url_for('static', filename=image_path) }}" alt="Uploaded Image" class="img-fluid">
+            </div>
+        {% endif %}
+        
+{% endblock %}
