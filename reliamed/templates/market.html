@@ -3,7 +3,6 @@
 Market Page
 {% endblock %}
 {% block content %}
-
 <div class="row" style="margin-top:20px; margin-left:10px; margin-right: 0px;">
     <div class="col-8">
         <h2>Available Pharmaceuticals on the Market</h2>
@@ -46,20 +45,20 @@ Market Page
             {% include 'includes/owned_products_modals.html' %}           
             <div class="col-md-6">
                 <div style="margin-bottom: 5px" class="card text-center bg-dark">
-                     <div class="card-body">
-                         <h5 class="card-title">{{ owned_pharmaceutical.name }}</h5>
-                         <button type="button" class="btn btn-outline-danger" style="margin-bottom: 5px"
-                                 data-toggle="modal" data-target="#Modal-SellingConfirm-{{ owned_pharmaceutical.id }}">
-                             Sell this Product
-                         </button>
-                         <p class="card-text"><strong>
-                             This product costs {{ owned_pharmaceutical.price }}.00 Pesos
-                         </strong></p>
-                     </div>
-                 </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ owned_pharmaceutical.name }}</h5>
+                        <button type="button" class="btn btn-outline-danger" style="margin-bottom: 5px"
+                                data-toggle="modal" data-target="#Modal-SellingConfirm-{{ owned_pharmaceutical.id }}">
+                            Sell this Product
+                        </button>
+                        <p class="card-text"><strong>
+                            This product costs {{ owned_pharmaceutical.price }}.00 Pesos
+                        </strong></p>
+                    </div>
+                </div>
             </div>
             {% endfor %}
-       </div>
-  </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
