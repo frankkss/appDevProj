@@ -1,5 +1,5 @@
 from reliamed import app
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request, session
 from reliamed.models import Pharmaceuticals, User
 from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm
 from reliamed import db
@@ -109,3 +109,40 @@ def logout_page():
     logout_user()
     flash("You have been logged out!", category='info')
     return redirect(url_for("home_page"))
+
+# -------------------------user area----------------------------
+"""
+@app.route('/user/change-password', methods=['GET', 'POST'])
+def change_password_page():
+    if not 
+    return render_template('change_password.html')
+"""
+
+# -------------------------Admin area----------------------------
+
+@app.route('/admin-dashboard')
+def admin_dashboard():
+    return render_template('admin_dashboard.html')
+
+# Admin login
+# @app.route('/admin/', methods=['GET', 'POST'])
+# def adminLogin():
+#     if request.method == 'POST':
+#         username = request.form.get('username')
+#         password = request.form.get('password')
+#         if username == "" and password == "":
+#             flash('Please fill all the field', 'danger')
+#             return redirect('/admin/')
+#         else:
+#             # Login admin by username
+#             admins = Admin.query.filter_by(username=username).first()
+#             if admins and bcrypt.check_password_hash(admins.password, password):
+#                 session['admin_id'] = admins.id
+#                 session['admin_name'] = admins.username
+#                 flash('Login Successfully', 'success')
+#                 return redirect('/admin/dashboard')
+#             else:
+#                 flash('Invalid Email and Password', 'danger')
+#                 return redirect('/admin/')
+#     else:
+#         return render_template('admin/index.html', title="Admin Login")

@@ -3,11 +3,11 @@
     Welcome to RELIAMED APP
 {% endblock %}
 {% block content %}
-
-    <h1 class="text-center mt-3">Image Classification</h1>
+<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-dark" style="color:white">
+    <h1 class="display-5 font-weight-normal">Image Classification</h1>
     <form action="/predicted" method="post" enctype="multipart/form-data" class="text-center">
-        <input type="file" name="imagefile" required>
-        <input class="btn btn-primary mt-3" type="submit" value="Predict Image">
+        <input type="file" name="imagefile" required style="padding: 10px; width: 250px; margin-top: 10px; margin-right: -10px; margin-left: -10px;">
+        <input class="btn btn-primary mt-3" type="submit" value="Predict Image" style="margin-bottom: 17px;">
     </form>
 
         {% if prediction_text %}
@@ -18,5 +18,5 @@
                 <img src="{{ url_for('static', filename=image_path) }}" alt="Uploaded Image" class="img-fluid">
             </div>
         {% endif %}
-        
+</div>        
 {% endblock %}
