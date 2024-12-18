@@ -1,9 +1,11 @@
 from reliamed import app
 from flask import render_template, redirect, url_for, flash, request, session
-from reliamed.models import Pharmaceuticals, User
+from reliamed.models import Pharmaceuticals , User
 from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm
 from reliamed import db
 from flask_login import login_user, logout_user, login_required, current_user
+from flask_admin import Admin, AdminIndexView, expose
+from flask_admin.contrib.sqla import ModelView
 from .trained_model import save_image, predict_image_class, display_uploaded_image  # Import the functions from trained_model.py
 
 @app.route('/')
@@ -120,9 +122,30 @@ def change_password_page():
 
 # -------------------------Admin area----------------------------
 
+# table of users
+@app.route('/table')
+@login_required
+def table():
+    users = User.query.all()
+    return render_template('table.html', users=users)
+
+# admin control panel | http://127.0.0.1:5000/admin --> login required | !!ISSUE -- Can't edit/create but can delete!! 
+class MyAdminIndexView(AdminIndexView):
+    @expose('/')
+    @login_required
+    def index(self):
+        return super(MyAdminIndexView, self).index()
+
+class MyModelView(ModelView):
+    def is_accessible(self):
+        return login_required(lambda: True)()
+
+admin = Admin(app, name='Admin Panel', template_mode='bootstrap3', index_view=MyAdminIndexView())
+admin.add_view(MyModelView(User, db.session))
+
 @app.route('/admin-dashboard')
 def admin_dashboard():
-    return render_template('admin_dashboard.html')
+    return render_template('./admin/admin-dashboard.html')
 
 # Admin login
 # @app.route('/admin/', methods=['GET', 'POST'])
