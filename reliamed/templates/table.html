@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}
+    Welcome to RELIAMED APP
+{% endblock %}
+{% block content %}
+
+<h2>Users List</h2>
+<table style="width:100%">
+    <tr>
+        <th>id</th>
+        <th>username</th>
+        <th>email</th>
+        <th>budget</th>
+    </tr>
+    {% for user in users %}
+    <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.username }}</td>
+        <td>{{ user.email_address }}</td>
+        <td>{{ user.budget }}</td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+{% endblock %}
