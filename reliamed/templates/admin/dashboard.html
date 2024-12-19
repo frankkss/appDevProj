@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}
+Admin Dashboard
+{% endblock %}
+{% block content %}
+
+<div class="dashboard-buttons">
+	<button class="btn btn-primary btn-lg">
+        <a href="{{ url_for('create_user') }}" style="color: white">Create User</a>
+    </button>
+    <button class="btn btn-primary btn-lg">
+        <a href="{{ url_for('view_users') }}" style="color: white">View User</a>
+</div>
+
+{% endblock %}
