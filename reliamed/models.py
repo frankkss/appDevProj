@@ -2,17 +2,18 @@ from reliamed import db, login_manager
 from reliamed import bcrypt
 from flask_login import UserMixin
 
+# added column `is_admin`
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 class User(db.Model, UserMixin):
-    id = db.Column(db.Integer(), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(length=30), nullable=False, unique=True)
     email_address = db.Column(db.String(length=50), nullable=False, unique=True)
     password_hash = db.Column(db.String(length=60), nullable=False)
-    budget = db.Column(db.Integer(), nullable=False, default=1000)
-    products = db.relationship('Pharmaceuticals', backref='owned_user', lazy=True)
-
+    budget = db.Column(db.Integer, nullable=False, default=1000)
+    is_admin = db.Column(db.Boolean, default=False) # added column in User table | Used for checking if user is admin or not
+    
     @property
     def prettier_budget(self):
         if len(str(self.budget)) >= 4:
@@ -22,7 +23,7 @@ class User(db.Model, UserMixin):
         
     @property
     def password(self):
-        return self.password
+        raise AttributeError('password is not a readable attribute.')
 
     @password.setter
     def password(self, plain_text_password):
@@ -57,24 +58,4 @@ class Pharmaceuticals(db.Model):
         self.owner = None
         user.budget += self.price
         db.session.commit()
-
-# Admin Class
-
-class Admin(db.Model, UserMixin):
-    id = db.Column(db.Integer(), primary_key=True)
-    username = db.Column(db.String(length=30), nullable=False, unique=True)
-    password = db.Column(db.String(length=60), nullable=False)
-    
-    @property
-    def password(self):
-        return self.password
-
-    @password.setter
-    def password(self, plain_text_password):
-        self.password_hash = bcrypt.generate_password_hash(plain_text_password).decode('utf-8')
-
-    def check_password_correction(self, attempted_password):
-        return bcrypt.check_password_hash(self.password_hash, attempted_password)
-    
-    def __repr__(self):
-        return f'Admin "{self.username}", "{self.id}"'
+        
