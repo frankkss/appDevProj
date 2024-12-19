@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}
+Edit Medicine
+{% endblock %}
+{% block content %}
+<body class="text-center">
+    <div class="container">
+        <form method="POST" class="form-register" style="color:white">
+            {{ form.hidden_tag() }}
+            <img class="mb-4" src="#" alt="">
+            <h1 class="h3 mb-3 font-weight-normal">
+                EDIT MEDICINE DETAILS
+            </h1>
+            <br>
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.name.label(class="form-control-label") }}
+            {{ form.name(class="form-control form-control-lg") }}
+        </div>
+        <div class="form-group">
+            {{ form.price.label(class="form-control-label") }}
+            {{ form.price(class="form-control form-control-lg") }}
+        </div>
+        <div class="form-group">
+            {{ form.barcode.label(class="form-control-label") }}
+            {{ form.barcode(class="form-control form-control-lg") }}
+        </div>
+        <div class="form-group">
+            {{ form.description.label(class="form-control-label") }}
+            {{ form.description(class="form-control form-control-lg") }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary btn-block btn-lg") }}
+        </div>
+        </form>
+    </div>
+</body>
+{% endblock %}

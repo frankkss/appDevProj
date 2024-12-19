@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, HiddenField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, HiddenField, IntegerField, TextAreaField, DecimalField, SubmitField
 from wtforms.validators import Length, EqualTo, Email, DataRequired, ValidationError, Optional
-from reliamed.models import User
+from reliamed.models import User, Pharmaceuticals
 
 
 class RegisterForm(FlaskForm):
@@ -61,3 +61,11 @@ class AdminLoginForm(FlaskForm):
     username = StringField(label='User Name', validators=[DataRequired()])
     password = PasswordField(label='Password', validators=[DataRequired()])
     submit = SubmitField(label='Sign in')
+
+# Added a medicine form for adding and updating medicines
+class MedicineForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired(), Length(min=2, max=30)])
+    price = IntegerField('Price', validators=[DataRequired()])
+    barcode = StringField('Barcode', validators=[DataRequired(), Length(min=12, max=12)])
+    description = TextAreaField('Description', validators=[DataRequired(), Length(min=2, max=1024)])
+    submit = SubmitField('Submit')

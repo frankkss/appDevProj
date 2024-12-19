@@ -1,11 +1,10 @@
 from reliamed import app
 from flask import render_template, redirect, url_for, flash, request, session
-from reliamed.models import Pharmaceuticals
-from reliamed.models import User
-from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm #AdminRegisterForm # new added AdminRegisterForm
+from reliamed.models import Pharmaceuticals, User
+from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm, MedicineForm
 from reliamed import db
 from flask_login import login_user, logout_user, login_required, current_user
-from .trained_model import save_image, predict_image_class, display_uploaded_image  # Import the functions from trained_model.py
+from .trained_model import save_image, predict_image_class, display_uploaded_image
 
 @app.route('/')
 @app.route('/home')
@@ -105,7 +104,7 @@ def predicted():
     print(f"Predicted class: {predicted_class}, Confidence Score: {confidence_score}")  # Debug statement
 
     # Extract the relative path to the image for display
-    relative_image_path = image_path.replace('/workspaces/appDevProj/reliamed/static/', '')
+    relative_image_path = image_path.replace('/home/hecavi/appDevProj/reliamed/static/', '')
 
     return render_template('predict.html', prediction_text=f'This medicine is classified as: {predicted_class} ({confidence_score * 100:.2f}%)', image_path=relative_image_path)
 
@@ -210,3 +209,56 @@ def delete_user(user_id):
     db.session.commit()
     flash(f'User {user.username} deleted successfully!', category='success')
     return redirect(url_for('view_users'))
+
+# ----------------- add route for viewing the admin/view_medicine.html page -----------------
+
+@app.route('/view-medicines')
+@login_required
+@admin_required
+def view_medicines():
+    medicines = Pharmaceuticals.query.all()
+    return render_template('admin/view_medicines.html', medicines=medicines)
+
+@app.route('/add_medicine', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_medicine():
+    form = MedicineForm()
+    if form.validate_on_submit():
+        new_medicine = Pharmaceuticals(
+            name=form.name.data,
+            price=form.price.data,
+            barcode=form.barcode.data,
+            description=form.description.data
+        )
+        db.session.add(new_medicine)
+        db.session.commit()
+        flash(f'Medicine {new_medicine.name} added successfully!', category='success')
+        return redirect(url_for('view_medicines'))
+    return render_template('admin/create_medicine.html', form=form)
+
+@app.route('/edit_medicine/edit/<int:medicine_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_medicine(medicine_id):
+    medicine = Pharmaceuticals.query.get_or_404(medicine_id)
+    form = MedicineForm(obj=medicine)
+    if form.validate_on_submit():
+        medicine.name = form.name.data
+        medicine.price = form.price.data
+        medicine.barcode = form.barcode.data
+        medicine.description = form.description.data
+        db.session.commit()
+        flash(f'Medicine {medicine.name} updated successfully!', category='success')
+        return redirect(url_for('view_medicines'))
+    return render_template('admin/edit_medicine.html', form=form, medicine=medicine)
+
+@app.route('/delete_medicine/<int:medicine_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_medicine(medicine_id):
+    medicine = Pharmaceuticals.query.get_or_404(medicine_id)
+    db.session.delete(medicine)
+    db.session.commit()
+    flash(f'Medicine {medicine.name} deleted successfully!', category='success')
+    return redirect(url_for('view_medicines'))
