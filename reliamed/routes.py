@@ -1,11 +1,10 @@
 from reliamed import app
 from flask import render_template, redirect, url_for, flash, request, session
-from reliamed.models import Pharmaceuticals , User
-from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm
+from reliamed.models import Pharmaceuticals
+from reliamed.models import User
+from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm #AdminRegisterForm # new added AdminRegisterForm
 from reliamed import db
 from flask_login import login_user, logout_user, login_required, current_user
-from flask_admin import Admin, AdminIndexView, expose
-from flask_admin.contrib.sqla import ModelView
 from .trained_model import save_image, predict_image_class, display_uploaded_image  # Import the functions from trained_model.py
 
 @app.route('/')
@@ -73,7 +72,14 @@ def login_page():
         ):
             login_user(attempted_user)
             flash(f'Success! You are logged in as: {attempted_user.username}', category='success')
-            return redirect(url_for('market_page'))
+            
+            # Debugging statement
+            print(f'User {attempted_user.username} is_admin: {attempted_user.is_admin}')
+            
+            if attempted_user.is_admin:
+                return redirect(url_for('admin_home'))
+            else:
+                return redirect(url_for('market_page'))
         else:
             flash('Username and password are not match! Please try again', category='danger')
 
@@ -122,50 +128,68 @@ def change_password_page():
 
 # -------------------------Admin area----------------------------
 
-# table of users
-@app.route('/table')
+from reliamed.decorators import admin_required
+
+# From Admin Panel --> This is where admin user is redirected
+@app.route('/admin-home', methods=['GET', 'POST'])
 @login_required
-def table():
+@admin_required
+def admin_home():
+    return render_template('admin/dashboard.html')
+
+# A button in admin panel to create a new user --> if new user created, return to admin_home
+@app.route('/create-user', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_user():
+    form = AdminUserForm()
+    if form.validate_on_submit():
+        user_to_create = User(username=form.username.data,
+                              email_address=form.email_address.data,
+                              password=form.password.data,
+                              is_admin=form.is_admin.data)
+        db.session.add(user_to_create)
+        db.session.commit()
+        flash(f'User {user_to_create.username} created successfully! Go to `view_user` to check.', category='success')
+        return redirect(url_for('admin_home'))
+
     users = User.query.all()
-    return render_template('table.html', users=users)
+    return render_template('admin/create_user.html', form=form, users=users)
 
-# admin control panel | http://127.0.0.1:5000/admin --> login required | !!ISSUE -- Can't edit/create but can delete!! 
-class MyAdminIndexView(AdminIndexView):
-    @expose('/')
-    @login_required
-    def index(self):
-        return super(MyAdminIndexView, self).index()
+# From view_users.html, the admin can update, delete or grant users for admin rights.
+@app.route('/view-users', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def view_users():
+    users = User.query.all()
+    return render_template('admin/view_users.html', users=users)
 
-class MyModelView(ModelView):
-    def is_accessible(self):
-        return login_required(lambda: True)()
+# In view_users.html, the admin can click on the user to edit the user credentials
+@app.route('/edit_user/edit/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_user(user_id):
+    user = User.query.get_or_404(user_id)
+    form = AdminUserForm(original_username=user.username, original_email=user.email_address, obj=user)
+    if form.validate_on_submit():
+        user.username = form.username.data
+        user.email_address = form.email_address.data
+        user.is_admin = form.is_admin.data
+        # The update is optional whether admin wants to update the password or not
+        if form.password.data:
+            user.password = form.password.data
+        db.session.commit()
+        flash(f'User {user.username} updated successfully!', category='success')
+        return redirect(url_for('view_users'))
+    return render_template('admin/edit_user.html', form=form, user=user)
 
-admin = Admin(app, name='Admin Panel', template_mode='bootstrap3', index_view=MyAdminIndexView())
-admin.add_view(MyModelView(User, db.session))
-
-@app.route('/admin-dashboard')
-def admin_dashboard():
-    return render_template('./admin/admin-dashboard.html')
-
-# Admin login
-# @app.route('/admin/', methods=['GET', 'POST'])
-# def adminLogin():
-#     if request.method == 'POST':
-#         username = request.form.get('username')
-#         password = request.form.get('password')
-#         if username == "" and password == "":
-#             flash('Please fill all the field', 'danger')
-#             return redirect('/admin/')
-#         else:
-#             # Login admin by username
-#             admins = Admin.query.filter_by(username=username).first()
-#             if admins and bcrypt.check_password_hash(admins.password, password):
-#                 session['admin_id'] = admins.id
-#                 session['admin_name'] = admins.username
-#                 flash('Login Successfully', 'success')
-#                 return redirect('/admin/dashboard')
-#             else:
-#                 flash('Invalid Email and Password', 'danger')
-#                 return redirect('/admin/')
-#     else:
-#         return render_template('admin/index.html', title="Admin Login")
+# In view_users.html, the admin can click on the user to delete the user credentials
+@app.route('/view-users/delete/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    flash(f'User {user.username} deleted successfully!', category='success')
+    return redirect(url_for('view_users'))
