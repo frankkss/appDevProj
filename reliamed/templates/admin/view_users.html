@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}
+Admin Dashboard
+{% endblock %}
+{% block content %}
+
+<style>
+    th, td {
+        color: white;
+    }
+</style>
+
+    <h2>Registered Users</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Admin</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email_address }}</td>
+                <td>{{ user.is_admin }}</td>
+                <td>
+                    <a href="{{ url_for('edit_user', user_id=user.id) }}" class="btn btn-warning">Edit</a>
+                    <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
