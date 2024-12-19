@@ -56,3 +56,8 @@ class AdminUserForm(FlaskForm):
             user = User.query.filter_by(email_address=email_address.data).first()
             if user:
                 raise ValidationError('Email address is already in use. Please choose a different one.')
+
+class AdminLoginForm(FlaskForm):
+    username = StringField(label='User Name', validators=[DataRequired()])
+    password = PasswordField(label='Password', validators=[DataRequired()])
+    submit = SubmitField(label='Sign in')
