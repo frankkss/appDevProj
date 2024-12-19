@@ -1,17 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}
-Admin Dashboard
+Admin Main Dashboard
 {% endblock %}
 {% block content %}
 <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-dark" style="color:white">
     <div class="col-md-5 p-lg-5 mx-auto my-5">
-        <div class="dashboard-buttons">
-            <button class="btn btn-primary btn-lg">
-                <a href="{{ url_for('create_user') }}" style="color: white">Create User</a>
-            </button>
-            <button class="btn btn-primary btn-lg">
-                <a href="{{ url_for('view_users') }}" style="color: white">View User</a>
-        </div>
+        <h1 class="display-4 font-weight-normal">RELIAMED</h1>
+        <p class="lead font-weight-normal">This is for Admin page only</p>
+        <a class="btn btn-primary" href="{{ url_for('admin_home') }}">Get Started</a>
     </div>
     <div class="product-device box-shadow d-none d-md-block"></div>
     <div class="product-device product-device-2 box-shadow d-none d-md-block"></div>

@@ -4,16 +4,14 @@ Admin Dashboard
 {% endblock %}
 {% block content %}
 
-<style>
-    th, td {
-        color: white;
-    }
-</style>
-
-    <h2>Registered Users</h2>
-    <table class="table">
+<div class="row justify-content-center" style="margin-top:20px; margin-left:10px; margin-right: 0px">
+    <div class="col-8 text-center">
+        <h2>Registered Users</h2>
+        <br>
+        <table class="table table-hover table-dark">
         <thead>
             <tr>
+                <th>ID</th>
                 <th>Username</th>
                 <th>Email</th>
                 <th>Admin</th>
@@ -23,6 +21,7 @@ Admin Dashboard
         <tbody>
             {% for user in users %}
             <tr>
+                <td>{{ user.id }}</td>
                 <td>{{ user.username }}</td>
                 <td>{{ user.email_address }}</td>
                 <td>{{ user.is_admin }}</td>
@@ -35,6 +34,7 @@ Admin Dashboard
             </tr>
             {% endfor %}
         </tbody>
-    </table>
-
+        </table>
+    </div> 
+</div>
 {% endblock %}

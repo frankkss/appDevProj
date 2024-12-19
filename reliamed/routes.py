@@ -137,6 +137,10 @@ from reliamed.decorators import admin_required
 def admin_home():
     return render_template('admin/dashboard.html')
 
+@app.route('/admin-main', methods=['GET', 'POST'])
+def admin_main():
+    return render_template('admin/adminhome.html')
+
 # A button in admin panel to create a new user --> if new user created, return to admin_home
 @app.route('/create-user', methods=['GET', 'POST'])
 @login_required
@@ -151,7 +155,7 @@ def create_user():
         db.session.add(user_to_create)
         db.session.commit()
         flash(f'User {user_to_create.username} created successfully! Go to `view_user` to check.', category='success')
-        return redirect(url_for('admin_home'))
+        return redirect(url_for('admin_main'))
 
     users = User.query.all()
     return render_template('admin/create_user.html', form=form, users=users)
