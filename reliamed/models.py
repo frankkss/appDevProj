@@ -13,6 +13,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(length=60), nullable=False)
     budget = db.Column(db.Integer, nullable=False, default=1000)
     is_admin = db.Column(db.Boolean, default=False) # added column in User table | Used for checking if user is admin or not
+    products = db.relationship('Pharmaceuticals', backref='owned_user', lazy=True)  # Ensure this line is added
     
     @property
     def prettier_budget(self):
@@ -58,4 +59,3 @@ class Pharmaceuticals(db.Model):
         self.owner = None
         user.budget += self.price
         db.session.commit()
-        

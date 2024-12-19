@@ -2,7 +2,7 @@ from reliamed import app
 from flask import render_template, redirect, url_for, flash, request, session
 from reliamed.models import Pharmaceuticals
 from reliamed.models import User
-from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm #AdminRegisterForm # new added AdminRegisterForm
+from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm #AdminRegisterForm # new added AdminRegisterForm
 from reliamed import db
 from flask_login import login_user, logout_user, login_required, current_user
 from .trained_model import save_image, predict_image_class, display_uploaded_image  # Import the functions from trained_model.py
@@ -18,7 +18,7 @@ def market_page():
     purchase_form = PurchaseProductForm()
     selling_form = SellProductForm()
     if request.method == "POST":
-        #Purchase Product Logic
+        # Purchase Product Logic
         purchased_product = request.form.get('purchased_product')
         p_product_object = Pharmaceuticals.query.filter_by(name=purchased_product).first()
         if p_product_object:
@@ -27,7 +27,8 @@ def market_page():
                 flash(f"Congratulations! You purchased {p_product_object.name} for {p_product_object.price}$", category='success')
             else:
                 flash(f"Unfortunately, you don't have enough money to purchase {p_product_object.name}!", category='danger')
-        #Sell Product Logic
+        
+        # Sell Product Logic
         sold_pharmaceutical = request.form.get('sold_pharmaceutical')
         s_pharmaceutical_object = Pharmaceuticals.query.filter_by(name=sold_pharmaceutical).first()
         if s_pharmaceutical_object:
@@ -70,18 +71,14 @@ def login_page():
         if attempted_user and attempted_user.check_password_correction(
                 attempted_password=form.password.data
         ):
+            if attempted_user.is_admin:
+                flash('Admins must log in through the admin login page.', category='danger')
+                return redirect(url_for('admin_login_page'))
             login_user(attempted_user)
             flash(f'Success! You are logged in as: {attempted_user.username}', category='success')
-            
-            # Debugging statement
-            print(f'User {attempted_user.username} is_admin: {attempted_user.is_admin}')
-            
-            if attempted_user.is_admin:
-                return redirect(url_for('admin_home'))
-            else:
-                return redirect(url_for('market_page'))
+            return redirect(url_for('market_page'))
         else:
-            flash('Username and password are not match! Please try again', category='danger')
+            flash('Username and password do not match! Please try again', category='danger')
 
     return render_template('login.html', form=form)
 
@@ -140,6 +137,22 @@ def admin_home():
 @app.route('/admin-main', methods=['GET', 'POST'])
 def admin_main():
     return render_template('admin/adminhome.html')
+
+@app.route('/admin-login', methods=['GET', 'POST'])
+def admin_login_page():
+    form = AdminLoginForm()
+    if form.validate_on_submit():
+        attempted_user = User.query.filter_by(username=form.username.data).first()
+        if attempted_user and attempted_user.check_password_correction(
+                attempted_password=form.password.data
+        ) and attempted_user.is_admin:
+            login_user(attempted_user)
+            flash(f'Success! You are logged in as: {attempted_user.username}', category='success')
+            return redirect(url_for('admin_home'))
+        else:
+            flash('Invalid credentials or not an admin account! Please try again', category='danger')
+
+    return render_template('admin/adminlogin.html', form=form)
 
 # A button in admin panel to create a new user --> if new user created, return to admin_home
 @app.route('/create-user', methods=['GET', 'POST'])
