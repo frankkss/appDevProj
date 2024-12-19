@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, HiddenField
-from wtforms.validators import Length, EqualTo, Email, DataRequired, ValidationError
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, HiddenField
+from wtforms.validators import Length, EqualTo, Email, DataRequired, ValidationError, Optional
 from reliamed.models import User
 
 
@@ -31,3 +31,28 @@ class PurchaseProductForm(FlaskForm):
 
 class SellProductForm(FlaskForm):
     submit = SubmitField(label='Sell Product!')
+    
+# Admin User form: Create, Update, Delete
+class AdminUserForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired(), Length(min=2, max=30)])
+    email_address = StringField('Email Address', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[Optional(), Length(min=6)])
+    is_admin = BooleanField('Admin')
+    submit = SubmitField('Submit')
+
+    def __init__(self, original_username=None, original_email=None, *args, **kwargs):
+        super(AdminUserForm, self).__init__(*args, **kwargs)
+        self.original_username = original_username
+        self.original_email = original_email
+
+    def validate_username(self, username):
+        if username.data != self.original_username:  # Ensure it doesn't validate against itself
+            user = User.query.filter_by(username=username.data).first()
+            if user:
+                raise ValidationError('Username is already in use. Please choose a different one.')
+
+    def validate_email_address(self, email_address):
+        if email_address.data != self.original_email:  # Ensure it doesn't validate against itself
+            user = User.query.filter_by(email_address=email_address.data).first()
+            if user:
+                raise ValidationError('Email address is already in use. Please choose a different one.')
