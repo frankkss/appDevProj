@@ -5,19 +5,19 @@ Admin Dashboard
 {% block content %}
 <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-dark" style="color:white">
     <div class="col-md-5 p-lg-5 mx-auto my-5">
-        <div class="dashboard-buttons">
-            
-            <button class="btn btn-primary btn-lg">
+        <div class="dashboard-buttons">         
+            <button class="btn btn-primary btn-lg mb-3">
                 <a href="{{ url_for('create_user') }}" style="color: white">Create User</a>
             </button>
-            <button class="btn btn-primary btn-lg">
+            <button class="btn btn-primary btn-lg mb-3">
                 <a href="{{ url_for('view_users') }}" style="color: white">View User</a>
-
-            <button class="btn btn-primary btn-lg">
+            </button>
+            <button class="btn btn-primary btn-lg mb-3">
                 <a href="{{ url_for('add_medicine') }}" style="color: white">Add Medicine</a>
-            </button>                <button class="btn btn-primary btn-lg">
+            </button>                
+            <button class="btn btn-primary btn-lg mb-3">
                 <a href="{{ url_for('view_medicines') }}" style="color: white">View Medicines</a>
-        
+            </button>
         </div>
     </div>
     <div class="product-device box-shadow d-none d-md-block"></div>
