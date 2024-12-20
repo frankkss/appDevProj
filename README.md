@@ -1,5 +1,6 @@
 # appDevProj
 
+$ git clone https://github.com/frankkss/appDevProj
 
 ### Change to python 3.10.12 using pyenv
 
