@@ -31,7 +31,10 @@
                 <a class="nav-link" href="{{ url_for('create_user') }}">Create User</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('view_medicines') }}">View Medicines</a>
+                <a class="nav-link" href="{{ url_for('view_medicines') }}">View Meds</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('add_medicine') }}">Add Meds</a>
             </li>
             {% elif current_user.is_authenticated %}
             <li class="nav-item">
@@ -44,12 +47,14 @@
         </ul>
           {% if current_user.is_authenticated %}
             <ul class="navbar-nav">
+                {% if not current_user.is_admin %}
                 <li class="nav-item">
                     <a class="nav-link" style="color: lawngreen; font-weight: bold">
                         <i class="fas fa-coins"></i>
                         {{ current_user.prettier_budget }}
                     </a>
                 </li>
+                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link">Welcome, {{ current_user.username }}</a>
                 </li>
@@ -63,7 +68,7 @@
                     <a class="nav-link" href="{{ url_for('admin_main') }}">Admin</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('login_page') }}">Login</a>
+                    <a class="nav-link" href="{{ url_for('login_page') }}">User</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('register_page') }}">Register</a>
@@ -101,7 +106,8 @@
    <style>
       body {
       background-color: #212121;
-      color: white
+      color: white;
+      font-family:'Roboto',sans-serif;
       }
    </style>
 </html>
