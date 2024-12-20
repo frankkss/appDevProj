@@ -23,7 +23,7 @@ def market_page():
         if p_product_object:
             if current_user.can_purchase(p_product_object):
                 p_product_object.buy(current_user)
-                flash(f"Congratulations! You purchased {p_product_object.name} for {p_product_object.price}$", category='success')
+                flash(f"Congratulations! You purchased {p_product_object.name} for ₱{p_product_object.price}.00", category='success')
             else:
                 flash(f"Unfortunately, you don't have enough money to purchase {p_product_object.name}!", category='danger')
         
