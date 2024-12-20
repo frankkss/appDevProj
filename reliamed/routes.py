@@ -104,7 +104,7 @@ def predicted():
     print(f"Predicted class: {predicted_class}, Confidence Score: {confidence_score}")  # Debug statement
 
     # Extract the relative path to the image for display
-    relative_image_path = image_path.replace('/home/hecavi/appDevProj/reliamed/static/', '')
+    relative_image_path = image_path.replace('/workspaces/appDevProj/reliamed/static/', '')
 
     return render_template('predict.html', prediction_text=f'This medicine is classified as: {predicted_class} ({confidence_score * 100:.2f}%)', image_path=relative_image_path)
 
