@@ -22,7 +22,7 @@ Market Page
         </thead>
         <tbody>
             {% for pharmaceutical in pharmaceuticals %}
-            {% include 'includes/pharma_modals.html' %}
+            {% include 'user/includes/pharma_modals.html' %}
             <tr>
                 <td>{{ pharmaceutical.id }}</td>
                 <td>{{ pharmaceutical.name }}</td>
@@ -43,7 +43,7 @@ Market Page
         <br>
         <div class="row">
             {% for owned_pharmaceutical in owned_pharmaceuticals%}
-            {% include 'includes/owned_products_modals.html' %}           
+            {% include 'user/includes/owned_products_modals.html' %}           
             <div class="col-md-6">
                 <div style="margin-bottom: 5px" class="card text-center bg-dark">
                      <div class="card-body">
@@ -63,3 +63,9 @@ Market Page
   </div>
 </div>
 {% endblock %}
+
+{% if current_user.is_authenticated %}
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('profile_page') }}">Profile</a>
+</li>
+{% endif %}
