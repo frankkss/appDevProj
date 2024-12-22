@@ -1,33 +1,8 @@
 # appDevProj
 
 ```
-$ python -m venv venv
+$ git clone https://github.com/frankkss/appDevProj
 ```
-
-```
-for window
-$ ./venv/Scripts/activate
-```
-
-```
-for linux
-$ source venv/bin/activate
-```
-
-
-```
-$ pip install -r requirements.txt
-```
-
-```
-$ set FLASK_APP=app.py
-```
-
-```
-$ flask run
-```
-
-----------------------------------------
 
 ### Change to python 3.10.12 using pyenv
 
@@ -63,4 +38,16 @@ $ pyenv global 3.10.12
 
 # check version if successfully changed
 $ python --version
+```
+
+```
+$ pip install -r requirements.txt
+```
+
+```
+$ set FLASK_APP=app.py
+```
+
+```
+$ flask run
 ```
