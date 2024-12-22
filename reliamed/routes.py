@@ -9,7 +9,7 @@ from .trained_model import save_image, predict_image_class, display_uploaded_ima
 @app.route('/')
 @app.route('/home')
 def home_page():
-    return render_template('home.html')
+    return render_template('user/home.html')
 
 @app.route('/market', methods=['GET', 'POST'])
 @login_required
@@ -42,7 +42,7 @@ def market_page():
     if request.method == "GET":
         pharmaceuticals = Pharmaceuticals.query.filter_by(owner=None)
         owned_pharmaceuticals = Pharmaceuticals.query.filter_by(owner=current_user.id)
-        return render_template('market.html', pharmaceuticals=pharmaceuticals, purchase_form=purchase_form, owned_pharmaceuticals=owned_pharmaceuticals, selling_form=selling_form)
+        return render_template('user/market.html', pharmaceuticals=pharmaceuticals, purchase_form=purchase_form, owned_pharmaceuticals=owned_pharmaceuticals, selling_form=selling_form)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_page():
@@ -60,7 +60,7 @@ def register_page():
         for err_msg in form.errors.values():
             print(f'There was an error with creating a user: {err_msg}')
 
-    return render_template('register.html', form=form)
+    return render_template('user/register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login_page():
@@ -79,13 +79,13 @@ def login_page():
         else:
             flash('Username and password do not match! Please try again', category='danger')
 
-    return render_template('login.html', form=form)
+    return render_template('user/login.html', form=form)
 
 @app.route('/predict', methods=['GET'])
 @login_required
 def predict():
     # Render the prediction page where users can upload an image for classification.
-    return render_template('predict.html')
+    return render_template('user/predict.html')
 
 @app.route('/predicted', methods=['POST'])
 def predicted():
@@ -106,7 +106,7 @@ def predicted():
     # Extract the relative path to the image for display
     relative_image_path = image_path.replace('/home/hecavi/appDevProj/reliamed/static/', '')
 
-    return render_template('predict.html', prediction_text=f'This medicine is classified as: {predicted_class} ({confidence_score * 100:.2f}%)', image_path=relative_image_path)
+    return render_template('user/predict.html', prediction_text=f'This medicine is classified as: {predicted_class} ({confidence_score * 100:.2f}%)', image_path=relative_image_path)
 
 @app.route('/logout')
 def logout_page():
