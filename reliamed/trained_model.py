@@ -7,7 +7,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 
 # Load the trained model
-model_path = '/workspaces/appDevProj/reliamed/saved_ml_model/med-vit.keras'
+model_path = '/root/appDevProj/reliamed/saved_ml_model/med-vit.keras'
 model = load_model(model_path)
 CATEGORIES = ['Alaxan', 'Bactidol', 'Bioflu', 'Biogesic', 'DayZinc', 'Decolgen', 'Fish Oil', 'Kremil S', 'Medicol', 'Neozep']
 
@@ -19,7 +19,7 @@ def display_uploaded_image(imagefile):
     # Return the image path
     return imagefile.filename
 
-def save_image(imagefile, save_dir="/workspaces/appDevProj/reliamed/static/img"):
+def save_image(imagefile, save_dir="/root/appDevProj/reliamed/static/img"):
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     image_path = os.path.join(save_dir, imagefile.filename)
