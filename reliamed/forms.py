@@ -80,3 +80,9 @@ class UserForm(FlaskForm):
     password_hash2 = PasswordField('Confirm Password', validators=[DataRequired()])
     profile_pic = FileField("Profile Pic")
     submit = SubmitField("Submit")
+
+class ChangePasswordForm(FlaskForm):
+    current_password = PasswordField('Current Password', validators=[DataRequired()])
+    new_password = PasswordField('New Password', validators=[DataRequired(), Length(min=6)])
+    confirm_new_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password', message='Passwords must match')])
+    submit = SubmitField('Change Password')

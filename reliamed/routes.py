@@ -1,7 +1,7 @@
 from reliamed import app
 from flask import render_template, redirect, url_for, flash, request, session
 from reliamed.models import Pharmaceuticals, User
-from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm, MedicineForm, UserForm
+from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm, MedicineForm, UserForm, ChangePasswordForm
 from reliamed import db
 from flask_login import login_user, logout_user, login_required, current_user
 from .trained_model import save_image, predict_image_class, display_uploaded_image
@@ -61,8 +61,8 @@ def register_page():
         db.session.add(user_to_create)
         db.session.commit()
         login_user(user_to_create)
-        flash(f"Account created successfully! You are now logged in as {user_to_create.username}", category='success')
-        return redirect(url_for('market_page'))
+        flash(f"Account created successfully! Please login as {user_to_create.username}", category='success')
+        return redirect(url_for('login_page'))
     if form.errors != {}: #If there are not errors from the validations
         for err_msg in form.errors.values():
             print(f'There was an error with creating a user: {err_msg}')
@@ -122,6 +122,10 @@ def logout_page():
     return redirect(url_for("home_page"))
 
 # -------------------------user area (Profile MAnagement)----------------------------
+# Edit user profile information
+# Change password
+# Upload and display profile pictures
+
 # Create Dashboard Page
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
@@ -228,6 +232,21 @@ def delete(id):
     else:
         flash("You do not have permission to delete this user.", category='danger')
         return redirect(url_for('dashboard'))
+
+# Change password
+@app.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        if current_user.check_password_correction(form.current_password.data):
+            current_user.password = form.new_password.data
+            db.session.commit()
+            flash("Password updated successfully!", category='success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash("Current password is incorrect. Please try again.", category='danger')
+    return render_template('user/change_password.html', form=form)
 
 # -------------------------Admin area----------------------------
 
