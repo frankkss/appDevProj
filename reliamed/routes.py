@@ -1,10 +1,17 @@
 from reliamed import app
 from flask import render_template, redirect, url_for, flash, request, session
 from reliamed.models import Pharmaceuticals, User
-from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm, MedicineForm
+from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm, MedicineForm, UserForm
 from reliamed import db
 from flask_login import login_user, logout_user, login_required, current_user
 from .trained_model import save_image, predict_image_class, display_uploaded_image
+from werkzeug.utils import secure_filename
+import uuid as uuid
+import os
+
+
+UPLOAD_FOLDER = 'static/images/'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/')
 @app.route('/home')
@@ -114,13 +121,65 @@ def logout_page():
     flash("You have been logged out!", category='info')
     return redirect(url_for("home_page"))
 
-# -------------------------user area----------------------------
-"""
-@app.route('/user/change-password', methods=['GET', 'POST'])
-def change_password_page():
-    if not 
-    return render_template('change_password.html')
-"""
+# -------------------------user area (Profile MAnagement)----------------------------
+# Create Dashboard Page
+@app.route('/dashboard', methods=['GET', 'POST'])
+@login_required
+def dashboard():
+	form = UserForm()
+	id = current_user.id
+	name_to_update = User.query.get_or_404(id)
+	if request.method == "POST":
+		name_to_update.name = request.form['name']
+		name_to_update.email = request.form['email']
+		name_to_update.username = request.form['username']
+		
+
+		# Check for profile pic
+		if request.files['profile_pic']:
+			name_to_update.profile_pic = request.files['profile_pic']
+
+			# Grab Image Name
+			pic_filename = secure_filename(name_to_update.profile_pic.filename)
+			# Set UUID
+			pic_name = str(uuid.uuid1()) + "_" + pic_filename
+			# Save That Image
+			saver = request.files['profile_pic']
+			
+
+			# Change it to a string to save to db
+			name_to_update.profile_pic = pic_name
+			try:
+				db.session.commit()
+				saver.save(os.path.join(app.config['UPLOAD_FOLDER'], pic_name))
+				flash("User Updated Successfully!")
+				return render_template("dashboard.html", 
+					form=form,
+					name_to_update = name_to_update)
+			except:
+				flash("Error!  Looks like there was a problem...try again!")
+				return render_template("dashboard.html", 
+					form=form,
+					name_to_update = name_to_update)
+		else:
+			db.session.commit()
+			flash("User Updated Successfully!")
+			return render_template("dashboard.html", 
+				form=form, 
+				name_to_update = name_to_update)
+	else:
+		return render_template("dashboard.html", 
+				form=form,
+				name_to_update = name_to_update,
+				id = id)
+
+	return render_template('dashboard.html')
+
+
+
+
+
+
 
 # -------------------------Admin area----------------------------
 
