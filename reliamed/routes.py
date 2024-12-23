@@ -8,7 +8,9 @@ from .trained_model import save_image, predict_image_class, display_uploaded_ima
 from werkzeug.utils import secure_filename
 import uuid as uuid
 import os
+from flask_wtf.csrf import CSRFProtect
 
+csrf = CSRFProtect(app)
 
 UPLOAD_FOLDER = 'reliamed/static/img/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -95,25 +97,35 @@ def predict():
     return render_template('user/predict.html')
 
 @app.route('/predicted', methods=['POST'])
+@csrf.exempt
 def predicted():
     imagefile = request.files['imagefile']
     
-    # Save the uploaded image and get its path
-    image_path = save_image(imagefile)
-    print(f"Image saved at: {image_path}")  # Debug statement
-    
-    # Display image
-    disp_uploadedIMG = display_uploaded_image(imagefile)
-    print(f"Image displayed: {disp_uploadedIMG}")
+    # Check if the file is an image
+    if not imagefile or not imagefile.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+        flash("Invalid file type. Please upload an image file.", category='danger')
+        return redirect(url_for('predict'))
 
-    # Get the prediction
-    predicted_class, confidence_score = predict_image_class(image_path)
-    print(f"Predicted class: {predicted_class}, Confidence Score: {confidence_score}")  # Debug statement
+    try:
+        # Save the uploaded image and get its path
+        image_path = save_image(imagefile)
+        print(f"Image saved at: {image_path}")  # Debug statement
+        
+        # Display image
+        disp_uploadedIMG = display_uploaded_image(imagefile)
+        print(f"Image displayed: {disp_uploadedIMG}")
 
-    # Extract the relative path to the image for display
-    relative_image_path = image_path.replace('/root/appDevProj/reliamed/static/', '')
+        # Get the prediction
+        predicted_class, confidence_score = predict_image_class(image_path)
+        print(f"Predicted class: {predicted_class}, Confidence Score: {confidence_score}")  # Debug statement
 
-    return render_template('user/predict.html', prediction_text=f'This medicine is classified as: {predicted_class} ({confidence_score * 100:.2f}%)', image_path=relative_image_path)
+        # Extract the relative path to the image for display
+        relative_image_path = image_path.replace('/root/appDevProj/reliamed/static/', '')
+
+        return render_template('user/predict.html', prediction_text=f'This medicine is classified as: {predicted_class} ({confidence_score * 100:.2f}%)', image_path=relative_image_path)
+    except Exception as e:
+        flash(f"An error occurred while processing the image: {str(e)}", category='danger')
+        return redirect(url_for('predict'))
 
 @app.route('/logout')
 def logout_page():
@@ -247,6 +259,8 @@ def change_password():
         else:
             flash("Current password is incorrect. Please try again.", category='danger')
     return render_template('user/change_password.html', form=form)
+
+    
 
 # -------------------------Admin area----------------------------
 
