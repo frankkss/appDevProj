@@ -1,10 +1,24 @@
 from reliamed import app
-from flask import render_template, redirect, url_for, flash, request, session
+from flask import render_template, redirect, url_for, flash, request, session, make_response
 from reliamed.models import Pharmaceuticals, User
-from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm, MedicineForm
+from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm, MedicineForm, UserForm, ChangePasswordForm
 from reliamed import db
 from flask_login import login_user, logout_user, login_required, current_user
 from .trained_model import save_image, predict_image_class, display_uploaded_image
+from werkzeug.utils import secure_filename
+import uuid as uuid
+import os
+
+
+UPLOAD_FOLDER = 'reliamed/static/img/'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+@app.after_request
+def add_cache_control_headers(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
 
 @app.route('/')
 @app.route('/home')
@@ -51,14 +65,18 @@ def register_page():
         user_to_create = User(username=form.username.data,
                               email_address=form.email_address.data,
                               password=form.password1.data)
-        db.session.add(user_to_create)
-        db.session.commit()
-        login_user(user_to_create)
-        flash(f"Account created successfully! You are now logged in as {user_to_create.username}", category='success')
-        return redirect(url_for('market_page'))
-    if form.errors != {}: #If there are not errors from the validations
+        try:
+            db.session.add(user_to_create)
+            db.session.commit()
+            login_user(user_to_create)
+            flash(f"Account created successfully! Please login as {user_to_create.username}", category='success')
+            return redirect(url_for('login_page'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error: {str(e)}", category='danger')
+    if form.errors != {}: # If there are errors from the validations
         for err_msg in form.errors.values():
-            print(f'There was an error with creating a user: {err_msg}')
+            flash(f'There was an error with creating a user: {err_msg}', category='danger')
 
     return render_template('user/register.html', form=form)
 
@@ -91,22 +109,31 @@ def predict():
 def predicted():
     imagefile = request.files['imagefile']
     
-    # Save the uploaded image and get its path
-    image_path = save_image(imagefile)
-    print(f"Image saved at: {image_path}")  # Debug statement
-    
-    # Display image
-    disp_uploadedIMG = display_uploaded_image(imagefile)
-    print(f"Image displayed: {disp_uploadedIMG}")
+    # Check if the uploaded file is an image
+    if not imagefile or not imagefile.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+        flash("Invalid file format. Please upload an image file.", category='danger')
+        return redirect(url_for('predict'))
 
-    # Get the prediction
-    predicted_class, confidence_score = predict_image_class(image_path)
-    print(f"Predicted class: {predicted_class}, Confidence Score: {confidence_score}")  # Debug statement
+    try:
+        # Save the uploaded image and get its path
+        image_path = save_image(imagefile)
+        print(f"Image saved at: {image_path}")  # Debug statement
+        
+        # Display image
+        disp_uploadedIMG = display_uploaded_image(imagefile)
+        print(f"Image displayed: {disp_uploadedIMG}")
 
-    # Extract the relative path to the image for display
-    relative_image_path = image_path.replace('/home/hecavi/appDevProj/reliamed/static/', '')
+        # Get the prediction
+        predicted_class, confidence_score = predict_image_class(image_path)
+        print(f"Predicted class: {predicted_class}, Confidence Score: {confidence_score}")  # Debug statement
 
-    return render_template('user/predict.html', prediction_text=f'This medicine is classified as: {predicted_class} ({confidence_score * 100:.2f}%)', image_path=relative_image_path)
+        # Extract the relative path to the image for display
+        relative_image_path = image_path.replace('/root/appDevProj/reliamed/static/', '')
+
+        return render_template('user/predict.html', prediction_text=f'This medicine is classified as: {predicted_class} ({confidence_score * 100:.2f}%)', image_path=relative_image_path)
+    except Exception as e:
+        flash(f"An error occurred while processing the image: {str(e)}", category='danger')
+        return redirect(url_for('predict'))
 
 @app.route('/logout')
 def logout_page():
@@ -114,13 +141,132 @@ def logout_page():
     flash("You have been logged out!", category='info')
     return redirect(url_for("home_page"))
 
-# -------------------------user area----------------------------
-"""
-@app.route('/user/change-password', methods=['GET', 'POST'])
-def change_password_page():
-    if not 
-    return render_template('change_password.html')
-"""
+# -------------------------user area (Profile MAnagement)----------------------------
+# Edit user profile information
+# Change password
+# Upload and display profile pictures
+
+# Create Dashboard Page
+@app.route('/dashboard', methods=['GET', 'POST'])
+@login_required
+def dashboard():
+    form = UserForm()
+    id = current_user.id
+    name_to_update = User.query.get_or_404(id)
+    if request.method == "POST":
+        name_to_update.username = request.form['username']
+        name_to_update.email_address = request.form['email_address']
+
+        # Check for profile pic
+        if request.files['profile_pic']:
+            name_to_update.profile_pic = request.files['profile_pic']
+
+            # Grab Image Name
+            pic_filename = secure_filename(name_to_update.profile_pic.filename)
+            # Set UUID
+            pic_name = str(uuid.uuid1()) + "_" + pic_filename
+            # Save That Image
+            saver = request.files['profile_pic']
+
+            # Change it to a string to save to db
+            name_to_update.profile_pic = pic_name
+            try:
+                db.session.commit()
+                saver.save(os.path.join(app.config['UPLOAD_FOLDER'], pic_name))
+                flash("User Updated Successfully!")
+                return render_template("dashboard.html", 
+                    form=form,
+                    name_to_update=name_to_update)
+            except:
+                flash("Error!  Looks like there was a problem...try again!")
+                return render_template("dashboard.html", 
+                    form=form,
+                    name_to_update=name_to_update)
+        else:
+            db.session.commit()
+            flash("User Updated Successfully!")
+            return render_template("dashboard.html", 
+                form=form, 
+                name_to_update=name_to_update)
+    else:
+        return render_template("dashboard.html", 
+                form=form,
+                name_to_update=name_to_update,
+                id=id)
+
+    return render_template('dashboard.html')
+
+@app.route('/update/<int:id>', methods=['GET', 'POST'])
+@login_required
+def update(id):
+    form = UserForm()
+    name_to_update = User.query.get_or_404(id)
+    if request.method == "POST":
+        name_to_update.email_address = request.form['email_address']
+        name_to_update.username = request.form['username']
+
+        # Check for profile pic
+        if request.files['profile_pic']:
+            name_to_update.profile_pic = request.files['profile_pic']
+
+            # Grab Image Name
+            pic_filename = secure_filename(name_to_update.profile_pic.filename)
+            # Set UUID
+            pic_name = str(uuid.uuid1()) + "_" + pic_filename
+            # Save That Image
+            saver = request.files['profile_pic']
+
+            # Change it to a string to save to db
+            name_to_update.profile_pic = pic_name
+            try:
+                db.session.commit()
+                saver.save(os.path.join(app.config['UPLOAD_FOLDER'], pic_name))
+                flash("User Updated Successfully!")
+                return redirect(url_for('dashboard'))
+            except:
+                flash("Error! Looks like there was a problem...try again!")
+                return redirect(url_for('dashboard'))
+        else:
+            db.session.commit()
+            flash("User Updated Successfully!")
+            return redirect(url_for('dashboard'))
+    else:
+        return render_template("update.html", 
+                form=form,
+                name_to_update=name_to_update,
+                id=id)
+
+@app.route('/delete/<int:id>', methods=['POST'])
+@login_required
+def delete(id):
+    user_to_delete = User.query.get_or_404(id)
+    if user_to_delete.id == current_user.id:
+        try:
+            db.session.delete(user_to_delete)
+            db.session.commit()
+            flash("User Deleted Successfully!", category='success')
+            return redirect(url_for('home_page'))
+        except:
+            flash("There was a problem deleting the user. Please try again.", category='danger')
+            return redirect(url_for('dashboard'))
+    else:
+        flash("You do not have permission to delete this user.", category='danger')
+        return redirect(url_for('dashboard'))
+
+# Change password
+@app.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        if current_user.check_password_correction(form.current_password.data):
+            current_user.password = form.new_password.data
+            db.session.commit()
+            flash("Password updated successfully!", category='success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash("Current password is incorrect. Please try again.", category='danger')
+    return render_template('user/change_password.html', form=form)
 
 # -------------------------Admin area----------------------------
 

@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, HiddenField, IntegerField, TextAreaField, DecimalField, SubmitField
 from wtforms.validators import Length, EqualTo, Email, DataRequired, ValidationError, Optional
 from reliamed.models import User, Pharmaceuticals
-
+from flask_wtf.file import FileField
 
 class RegisterForm(FlaskForm):
     def validate_username(self, username_to_check):
@@ -69,3 +69,20 @@ class MedicineForm(FlaskForm):
     barcode = StringField('Barcode', validators=[DataRequired(), Length(min=12, max=12)])
     description = TextAreaField('Description', validators=[DataRequired(), Length(min=2, max=1024)])
     submit = SubmitField('Submit')
+    
+
+#User form: Edit user profile information, Change password ,Upload and display profile pictures
+class UserForm(FlaskForm):
+    name = StringField("Name", validators=[DataRequired()])
+    username = StringField("Username", validators=[DataRequired()])
+    email_address = StringField("Email Address", validators=[DataRequired(), Email()])
+    password_hash = PasswordField('Password', validators=[DataRequired(), EqualTo('password_hash2', message='Passwords Must Match!')])
+    password_hash2 = PasswordField('Confirm Password', validators=[DataRequired()])
+    profile_pic = FileField("Profile Pic")
+    submit = SubmitField("Submit")
+
+class ChangePasswordForm(FlaskForm):
+    current_password = PasswordField('Current Password', validators=[DataRequired()])
+    new_password = PasswordField('New Password', validators=[DataRequired(), Length(min=6)])
+    confirm_new_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password', message='Passwords must match')])
+    submit = SubmitField('Change Password')
