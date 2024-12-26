@@ -5,7 +5,6 @@ from reliamed.models import User, Pharmaceuticals
 from flask_wtf.file import FileField
 
 class RegisterForm(FlaskForm):
-    csrf_token = HiddenField()
     def validate_username(self, username_to_check):
         user = User.query.filter_by(username=username_to_check.data).first()
         if user:
@@ -23,22 +22,18 @@ class RegisterForm(FlaskForm):
     submit = SubmitField(label='Create Account')
 
 class LoginForm(FlaskForm):
-    csrf_token = HiddenField()
     username = StringField(label='User Name:', validators=[DataRequired()])
     password = PasswordField(label='Password:', validators=[DataRequired()])
     submit = SubmitField(label='Sign in')
 
 class PurchaseProductForm(FlaskForm):
-    csrf_token = HiddenField()
     submit = SubmitField(label='Purchase Product!')
 
 class SellProductForm(FlaskForm):
-    csrf_token = HiddenField()
     submit = SubmitField(label='Sell Product!')
     
 # Admin User form: Create, Update, Delete
 class AdminUserForm(FlaskForm):
-    csrf_token = HiddenField()
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=30)])
     email_address = StringField('Email Address', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[Optional(), Length(min=6)])
@@ -63,14 +58,12 @@ class AdminUserForm(FlaskForm):
                 raise ValidationError('Email address is already in use. Please choose a different one.')
 
 class AdminLoginForm(FlaskForm):
-    csrf_token = HiddenField()
     username = StringField(label='User Name', validators=[DataRequired()])
     password = PasswordField(label='Password', validators=[DataRequired()])
     submit = SubmitField(label='Sign in')
 
 # Added a medicine form for adding and updating medicines
 class MedicineForm(FlaskForm):
-    csrf_token = HiddenField()
     name = StringField('Name', validators=[DataRequired(), Length(min=2, max=30)])
     price = IntegerField('Price', validators=[DataRequired()])
     barcode = StringField('Barcode', validators=[DataRequired(), Length(min=12, max=12)])
@@ -80,7 +73,6 @@ class MedicineForm(FlaskForm):
 
 #User form: Edit user profile information, Change password ,Upload and display profile pictures
 class UserForm(FlaskForm):
-    csrf_token = HiddenField()
     name = StringField("Name", validators=[DataRequired()])
     username = StringField("Username", validators=[DataRequired()])
     email_address = StringField("Email Address", validators=[DataRequired(), Email()])
@@ -90,7 +82,6 @@ class UserForm(FlaskForm):
     submit = SubmitField("Submit")
 
 class ChangePasswordForm(FlaskForm):
-    csrf_token = HiddenField()
     current_password = PasswordField('Current Password', validators=[DataRequired()])
     new_password = PasswordField('New Password', validators=[DataRequired(), Length(min=6)])
     confirm_new_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password', message='Passwords must match')])
