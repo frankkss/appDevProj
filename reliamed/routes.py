@@ -1,5 +1,5 @@
 from reliamed import app
-from flask import render_template, redirect, url_for, flash, request, session
+from flask import render_template, redirect, url_for, flash, request, session, make_response
 from reliamed.models import Pharmaceuticals, User
 from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm, MedicineForm, UserForm, ChangePasswordForm
 from reliamed import db
@@ -8,12 +8,17 @@ from .trained_model import save_image, predict_image_class, display_uploaded_ima
 from werkzeug.utils import secure_filename
 import uuid as uuid
 import os
-from flask_wtf.csrf import CSRFProtect
 
-csrf = CSRFProtect(app)
 
 UPLOAD_FOLDER = 'reliamed/static/img/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+@app.after_request
+def add_cache_control_headers(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
 
 @app.route('/')
 @app.route('/home')
@@ -60,14 +65,18 @@ def register_page():
         user_to_create = User(username=form.username.data,
                               email_address=form.email_address.data,
                               password=form.password1.data)
-        db.session.add(user_to_create)
-        db.session.commit()
-        login_user(user_to_create)
-        flash(f"Account created successfully! Please login as {user_to_create.username}", category='success')
-        return redirect(url_for('login_page'))
-    if form.errors != {}: #If there are not errors from the validations
+        try:
+            db.session.add(user_to_create)
+            db.session.commit()
+            login_user(user_to_create)
+            flash(f"Account created successfully! Please login as {user_to_create.username}", category='success')
+            return redirect(url_for('login_page'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error: {str(e)}", category='danger')
+    if form.errors != {}: # If there are errors from the validations
         for err_msg in form.errors.values():
-            print(f'There was an error with creating a user: {err_msg}')
+            flash(f'There was an error with creating a user: {err_msg}', category='danger')
 
     return render_template('user/register.html', form=form)
 
@@ -97,13 +106,12 @@ def predict():
     return render_template('user/predict.html')
 
 @app.route('/predicted', methods=['POST'])
-@csrf.exempt
 def predicted():
     imagefile = request.files['imagefile']
     
-    # Check if the file is an image
+    # Check if the uploaded file is an image
     if not imagefile or not imagefile.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
-        flash("Invalid file type. Please upload an image file.", category='danger')
+        flash("Invalid file format. Please upload an image file.", category='danger')
         return redirect(url_for('predict'))
 
     try:
@@ -259,8 +267,6 @@ def change_password():
         else:
             flash("Current password is incorrect. Please try again.", category='danger')
     return render_template('user/change_password.html', form=form)
-
-    
 
 # -------------------------Admin area----------------------------
 
