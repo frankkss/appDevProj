@@ -8,7 +8,7 @@ The application is built using Flask, a lightweight web framework for Python, an
 
 
 ```
-$ git clone https://github.com/frankkss/Reliamed
+$ git clone https://github.com/frankkss/appDevProj
 ```
 
 ### Change to python 3.10.12 using pyenv
