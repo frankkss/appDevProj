@@ -1,4 +1,4 @@
-from reliamed import app
+from reliamed import app, google
 from flask import render_template, redirect, url_for, flash, request, session, make_response
 from reliamed.models import Pharmaceuticals, User
 from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm, MedicineForm, UserForm, ChangePasswordForm
@@ -98,6 +98,51 @@ def login_page():
             flash('Username and password do not match! Please try again', category='danger')
 
     return render_template('user/login.html', form=form)
+
+@app.route('/login/google')
+def google_login():
+    redirect_uri = url_for('google_authorize', _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+@app.route('/login/google/authorize')
+def google_authorize():
+    token = google.authorize_access_token()
+    resp = google.get('userinfo')
+    user_info = resp.json()
+    email = user_info.get('email')
+    
+    # Check if user exists with this email
+    user = User.query.filter_by(email_address=email).first()
+    
+    if not user:
+        # Create a new user
+        username = user_info.get('name', email.split('@')[0])
+        # Generate a secure random password since we won't be using it
+        import secrets
+        random_password = secrets.token_urlsafe(16)
+        
+        user = User(
+            username=username,
+            email_address=email,
+            password=random_password  # This will be hashed automatically
+        )
+        
+        try:
+            db.session.add(user)
+            db.session.commit()
+            flash(f"Account created successfully with Google!", category='success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error creating account: {str(e)}", category='danger')
+            return redirect(url_for('login_page'))
+    
+    if user.is_admin:
+        flash('Admin accounts cannot login through Google. Please use the admin login page.', category='danger')
+        return redirect(url_for('admin_login_page'))
+    
+    login_user(user)
+    flash(f'Success! You are logged in as: {user.username}', category='success')
+    return redirect(url_for('market_page'))
 
 @app.route('/predict', methods=['GET'])
 @login_required

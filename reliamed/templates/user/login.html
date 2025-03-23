@@ -27,7 +27,13 @@
             </div>
 
             {{ form.submit(class="btn btn-lg btn-block btn-primary") }}
-
+            
+            <div class="mt-3">
+                <p>Or</p>
+                <a href="{{ url_for('google_login') }}" class="btn btn-lg btn-block btn-danger">
+                    <i class="fab fa-google"></i> Continue with Google
+                </a>
+            </div>
         </form>
     </div>
 </body>
