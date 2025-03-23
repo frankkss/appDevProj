@@ -23,6 +23,10 @@ $ python --version
 $ curl https://pyenv.run | bash
 ```
 
+### if you encunter error like thissssss; "WARNING: Can not proceed with installation. Kindly remove the '/root/.pyenv' directory first."
+### try to remove firt the root pyenv using this command "rm -rf /root/.pyenv"
+### then try to install again pyenv
+
 ```
 # update shell configuration
 $ export PATH="$HOME/.pyenv/bin:$PATH"

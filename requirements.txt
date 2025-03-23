@@ -8,3 +8,5 @@ pillow==11.0.0
 scipy==1.14.1
 tensorflow==2.13.1
 email_validator
+Authlib Flask-OAuthlib
+python-dotenv
