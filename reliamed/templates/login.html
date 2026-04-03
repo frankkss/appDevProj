@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}
-    User Login
+    Login Page
 {% endblock %}
 
 {% block content %}
@@ -10,7 +10,7 @@
             {{ form.hidden_tag() }}
             <img class="mb-4" src="{{ url_for('static', filename='images/reliamed_logo.png') }}" alt=""/>
             <h1 class="h3 mb-3 font-weight-normal">
-                User Login
+                Please Login
             </h1>
             <br>
             {{ form.username.label() }}
@@ -21,19 +21,14 @@
 
             <br>
 
+
             <div class="checkbox mb-3">
                <h6>Do not have an account?</h6>
                <a class="btn btn-sm btn-secondary" href="{{ url_for('register_page') }}">Register</a>
             </div>
 
             {{ form.submit(class="btn btn-lg btn-block btn-primary") }}
-            
-            <div class="mt-3">
-                <p>Or</p>
-                <a href="{{ url_for('google_login') }}" class="btn btn-lg btn-block btn-danger">
-                    <i class="fab fa-google"></i> Continue with Google
-                </a>
-            </div>
+
         </form>
     </div>
 </body>

@@ -57,6 +57,9 @@
                         {{ current_user.prettier_budget }}
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                </li>
                 {% endif %}
                 <li class="nav-item">
                     <a class="nav-link">Welcome, {{ current_user.username }}</a>
