@@ -15,7 +15,7 @@ class User(db.Model, UserMixin):
     budget = db.Column(db.Integer, nullable=False, default=1000)
     is_admin = db.Column(db.Boolean, default=False) # added column in User table | Used for checking if user is admin or not
     products = db.relationship('Pharmaceuticals', backref='owned_user', lazy=True)  # Ensure this line is added
-    
+    profile_pic = db.Column(db.String(), nullable=True)
     @property
     def prettier_budget(self):
         if len(str(self.budget)) >= 4:

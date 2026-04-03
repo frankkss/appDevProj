@@ -1,10 +1,17 @@
 from reliamed import app
 from flask import render_template, redirect, url_for, flash, request, session
 from reliamed.models import Pharmaceuticals, User
-from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm, MedicineForm
+from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm, MedicineForm, UserForm
 from reliamed import db
 from flask_login import login_user, logout_user, login_required, current_user
 from .trained_model import save_image, predict_image_class, display_uploaded_image
+from werkzeug.utils import secure_filename
+import uuid as uuid
+import os
+
+
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'images')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/')
 @app.route('/home')
@@ -94,17 +101,14 @@ def predicted():
     # Save the uploaded image and get its path
     image_path = save_image(imagefile)
     print(f"Image saved at: {image_path}")  # Debug statement
-    
-    # Display image
-    disp_uploadedIMG = display_uploaded_image(imagefile)
-    print(f"Image displayed: {disp_uploadedIMG}")
 
     # Get the prediction
     predicted_class, confidence_score = predict_image_class(image_path)
     print(f"Predicted class: {predicted_class}, Confidence Score: {confidence_score}")  # Debug statement
 
-    # Extract the relative path to the image for display
-    relative_image_path = image_path.replace('/home/hecavi/appDevProj/reliamed/static/', '')
+    # Extract the relative path to the image for display (relative to reliamed/static folder)
+    static_dir = os.path.join(os.path.dirname(__file__), 'static')
+    relative_image_path = os.path.relpath(image_path, static_dir)
 
     return render_template('user/predict.html', prediction_text=f'This medicine is classified as: {predicted_class} ({confidence_score * 100:.2f}%)', image_path=relative_image_path)
 
@@ -114,13 +118,77 @@ def logout_page():
     flash("You have been logged out!", category='info')
     return redirect(url_for("home_page"))
 
-# -------------------------user area----------------------------
-"""
-@app.route('/user/change-password', methods=['GET', 'POST'])
-def change_password_page():
-    if not 
-    return render_template('change_password.html')
-"""
+# -------------------------user area (Profile MAnagement)----------------------------
+# Edit user profile information
+# Change password
+# Upload and display profile pictures
+
+# Create Dashboard Page
+@app.route('/dashboard', methods=['GET', 'POST'])
+@login_required
+def dashboard():
+    if current_user.is_admin:
+        flash("Admins do not have access to the user dashboard.", category='danger')
+        return redirect(url_for('admin_home'))
+    
+    form = UserForm()
+    id = current_user.id
+    user_to_update = User.query.get_or_404(id)
+    if request.method == "POST":
+        user_to_update.username = request.form['username']
+        user_to_update.email_address = request.form['email']
+        
+        # Check for profile pic
+        if request.files['profile_pic']:
+            profile_pic = request.files['profile_pic']
+            pic_filename = secure_filename(profile_pic.filename)
+            pic_name = str(uuid.uuid1()) + "_" + pic_filename
+            profile_pic.save(os.path.join(app.config['UPLOAD_FOLDER'], pic_name))
+            user_to_update.profile_pic = pic_name
+        
+        # Check for password change
+        if form.current_password.data:
+            if user_to_update.check_password_correction(form.current_password.data):
+                user_to_update.password = form.new_password.data
+            else:
+                flash("Current password is incorrect.", category='danger')
+                return render_template("dashboard.html", form=form, user_to_update=user_to_update, id=id)
+        
+        db.session.commit()
+        flash("User Updated Successfully!", category='success')
+        return redirect(url_for('dashboard'))
+    
+    return render_template("dashboard.html", form=form, user_to_update=user_to_update, id=id)
+
+@app.route('/update/<int:id>', methods=['GET', 'POST'])
+@login_required
+def update(id):
+    if id != current_user.id:
+        flash("You cannot edit another user's profile.", category='danger')
+        return redirect(url_for('dashboard'))
+    
+    form = UserForm()
+    user_to_update = User.query.get_or_404(id)
+    
+    if form.validate_on_submit():
+        user_to_update.username = form.username.data
+        user_to_update.email_address = form.email.data
+        
+        if form.profile_pic.data:
+            pic_filename = secure_filename(form.profile_pic.data.filename)
+            pic_name = str(uuid.uuid1()) + "_" + pic_filename
+            form.profile_pic.data.save(os.path.join(app.config['UPLOAD_FOLDER'], pic_name))
+            user_to_update.profile_pic = pic_name
+        
+        db.session.commit()
+        flash("User Updated Successfully!", category='success')
+        return redirect(url_for('dashboard'))
+    
+    elif request.method == 'GET':
+        form.username.data = user_to_update.username
+        form.email.data = user_to_update.email_address
+    
+    return render_template('update.html', form=form, id=id, user_to_update=user_to_update)
 
 # -------------------------Admin area----------------------------
 

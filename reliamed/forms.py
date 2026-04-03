@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, HiddenField, IntegerField, TextAreaField, DecimalField, SubmitField
 from wtforms.validators import Length, EqualTo, Email, DataRequired, ValidationError, Optional
 from reliamed.models import User, Pharmaceuticals
-
+from flask_wtf.file import FileField
 
 class RegisterForm(FlaskForm):
     def validate_username(self, username_to_check):
@@ -69,3 +69,14 @@ class MedicineForm(FlaskForm):
     barcode = StringField('Barcode', validators=[DataRequired(), Length(min=12, max=12)])
     description = TextAreaField('Description', validators=[DataRequired(), Length(min=2, max=1024)])
     submit = SubmitField('Submit')
+    
+
+#User form: Edit user profile information, Change password ,Upload and display profile pictures
+class UserForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])
+    email = StringField("Email", validators=[DataRequired()])
+    profile_pic = FileField("Profile Pic")
+    current_password = PasswordField('Current Password', validators=[Optional()])
+    new_password = PasswordField('New Password', validators=[Optional(), Length(min=6)])
+    confirm_new_password = PasswordField('Confirm New Password', validators=[Optional(), EqualTo('new_password', message='Passwords must match')])
+    submit = SubmitField("Submit")
