@@ -10,7 +10,7 @@ import uuid as uuid
 import os
 
 
-UPLOAD_FOLDER = '/workspaces/appDevProj/static/images'
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'images')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/')
