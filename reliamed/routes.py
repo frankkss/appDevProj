@@ -106,8 +106,9 @@ def predicted():
     predicted_class, confidence_score = predict_image_class(image_path)
     print(f"Predicted class: {predicted_class}, Confidence Score: {confidence_score}")  # Debug statement
 
-    # Extract the relative path to the image for display (relative to static folder)
-    relative_image_path = os.path.relpath(image_path, os.path.join(os.path.dirname(__file__), 'static'))
+    # Extract the relative path to the image for display (relative to reliamed/static folder)
+    static_dir = os.path.join(os.path.dirname(__file__), 'static')
+    relative_image_path = os.path.relpath(image_path, static_dir)
 
     return render_template('user/predict.html', prediction_text=f'This medicine is classified as: {predicted_class} ({confidence_score * 100:.2f}%)', image_path=relative_image_path)
 

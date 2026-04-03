@@ -21,8 +21,8 @@ def display_uploaded_image(imagefile):
 
 def save_image(imagefile, save_dir=None):
     if save_dir is None:
-        # Get the correct path relative to this file
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # Get the correct path - save to reliamed/static/img
+        base_dir = os.path.dirname(os.path.abspath(__file__))
         save_dir = os.path.join(base_dir, "static", "img")
     
     if not os.path.exists(save_dir):
