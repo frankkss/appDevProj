@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: reliamed-app
+    env: python
+    runtime: python-3.10.12
+    buildCommand: ./build.sh
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.12
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: reliamed-db
+          property: connectionString
+    healthCheckPath: /
+    autoDeploy: true
+
+databases:
+  - name: reliamed-db
+    databaseName: reliamed
+    user: reliamed_user

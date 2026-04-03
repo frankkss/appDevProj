@@ -1,7 +1,7 @@
-from reliamed import app, google
-from flask import render_template, redirect, url_for, flash, request, session, make_response
+from reliamed import app
+from flask import render_template, redirect, url_for, flash, request, session
 from reliamed.models import Pharmaceuticals, User
-from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm, MedicineForm, UserForm, ChangePasswordForm
+from reliamed.forms import RegisterForm, LoginForm, PurchaseProductForm, SellProductForm, AdminUserForm, AdminLoginForm, MedicineForm, UserForm
 from reliamed import db
 from flask_login import login_user, logout_user, login_required, current_user
 from .trained_model import save_image, predict_image_class, display_uploaded_image
@@ -10,15 +10,8 @@ import uuid as uuid
 import os
 
 
-UPLOAD_FOLDER = 'reliamed/static/img/'
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'images')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-@app.after_request
-def add_cache_control_headers(response):
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '-1'
-    return response
 
 @app.route('/')
 @app.route('/home')
@@ -65,18 +58,14 @@ def register_page():
         user_to_create = User(username=form.username.data,
                               email_address=form.email_address.data,
                               password=form.password1.data)
-        try:
-            db.session.add(user_to_create)
-            db.session.commit()
-            login_user(user_to_create)
-            flash(f"Account created successfully! Please login as {user_to_create.username}", category='success')
-            return redirect(url_for('login_page'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Error: {str(e)}", category='danger')
-    if form.errors != {}: # If there are errors from the validations
+        db.session.add(user_to_create)
+        db.session.commit()
+        login_user(user_to_create)
+        flash(f"Account created successfully! You are now logged in as {user_to_create.username}", category='success')
+        return redirect(url_for('market_page'))
+    if form.errors != {}: #If there are not errors from the validations
         for err_msg in form.errors.values():
-            flash(f'There was an error with creating a user: {err_msg}', category='danger')
+            print(f'There was an error with creating a user: {err_msg}')
 
     return render_template('user/register.html', form=form)
 
@@ -99,51 +88,6 @@ def login_page():
 
     return render_template('user/login.html', form=form)
 
-@app.route('/login/google')
-def google_login():
-    redirect_uri = url_for('google_authorize', _external=True)
-    return google.authorize_redirect(redirect_uri)
-
-@app.route('/login/google/authorize')
-def google_authorize():
-    token = google.authorize_access_token()
-    resp = google.get('userinfo')
-    user_info = resp.json()
-    email = user_info.get('email')
-    
-    # Check if user exists with this email
-    user = User.query.filter_by(email_address=email).first()
-    
-    if not user:
-        # Create a new user
-        username = user_info.get('name', email.split('@')[0])
-        # Generate a secure random password since we won't be using it
-        import secrets
-        random_password = secrets.token_urlsafe(16)
-        
-        user = User(
-            username=username,
-            email_address=email,
-            password=random_password  # This will be hashed automatically
-        )
-        
-        try:
-            db.session.add(user)
-            db.session.commit()
-            flash(f"Account created successfully with Google!", category='success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Error creating account: {str(e)}", category='danger')
-            return redirect(url_for('login_page'))
-    
-    if user.is_admin:
-        flash('Admin accounts cannot login through Google. Please use the admin login page.', category='danger')
-        return redirect(url_for('admin_login_page'))
-    
-    login_user(user)
-    flash(f'Success! You are logged in as: {user.username}', category='success')
-    return redirect(url_for('market_page'))
-
 @app.route('/predict', methods=['GET'])
 @login_required
 def predict():
@@ -154,31 +98,19 @@ def predict():
 def predicted():
     imagefile = request.files['imagefile']
     
-    # Check if the uploaded file is an image
-    if not imagefile or not imagefile.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
-        flash("Invalid file format. Please upload an image file.", category='danger')
-        return redirect(url_for('predict'))
+    # Save the uploaded image and get its path
+    image_path = save_image(imagefile)
+    print(f"Image saved at: {image_path}")  # Debug statement
 
-    try:
-        # Save the uploaded image and get its path
-        image_path = save_image(imagefile)
-        print(f"Image saved at: {image_path}")  # Debug statement
-        
-        # Display image
-        disp_uploadedIMG = display_uploaded_image(imagefile)
-        print(f"Image displayed: {disp_uploadedIMG}")
+    # Get the prediction
+    predicted_class, confidence_score = predict_image_class(image_path)
+    print(f"Predicted class: {predicted_class}, Confidence Score: {confidence_score}")  # Debug statement
 
-        # Get the prediction
-        predicted_class, confidence_score = predict_image_class(image_path)
-        print(f"Predicted class: {predicted_class}, Confidence Score: {confidence_score}")  # Debug statement
+    # Extract the relative path to the image for display (relative to reliamed/static folder)
+    static_dir = os.path.join(os.path.dirname(__file__), 'static')
+    relative_image_path = os.path.relpath(image_path, static_dir)
 
-        # Extract the relative path to the image for display
-        relative_image_path = image_path.replace('/root/appDevProj/reliamed/static/', '')
-
-        return render_template('user/predict.html', prediction_text=f'This medicine is classified as: {predicted_class} ({confidence_score * 100:.2f}%)', image_path=relative_image_path)
-    except Exception as e:
-        flash(f"An error occurred while processing the image: {str(e)}", category='danger')
-        return redirect(url_for('predict'))
+    return render_template('user/predict.html', prediction_text=f'This medicine is classified as: {predicted_class} ({confidence_score * 100:.2f}%)', image_path=relative_image_path)
 
 @app.route('/logout')
 def logout_page():
@@ -195,123 +127,68 @@ def logout_page():
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
+    if current_user.is_admin:
+        flash("Admins do not have access to the user dashboard.", category='danger')
+        return redirect(url_for('admin_home'))
+    
     form = UserForm()
     id = current_user.id
-    name_to_update = User.query.get_or_404(id)
+    user_to_update = User.query.get_or_404(id)
     if request.method == "POST":
-        name_to_update.username = request.form['username']
-        name_to_update.email_address = request.form['email_address']
-
+        user_to_update.username = request.form['username']
+        user_to_update.email_address = request.form['email']
+        
         # Check for profile pic
         if request.files['profile_pic']:
-            name_to_update.profile_pic = request.files['profile_pic']
-
-            # Grab Image Name
-            pic_filename = secure_filename(name_to_update.profile_pic.filename)
-            # Set UUID
+            profile_pic = request.files['profile_pic']
+            pic_filename = secure_filename(profile_pic.filename)
             pic_name = str(uuid.uuid1()) + "_" + pic_filename
-            # Save That Image
-            saver = request.files['profile_pic']
-
-            # Change it to a string to save to db
-            name_to_update.profile_pic = pic_name
-            try:
-                db.session.commit()
-                saver.save(os.path.join(app.config['UPLOAD_FOLDER'], pic_name))
-                flash("User Updated Successfully!")
-                return render_template("dashboard.html", 
-                    form=form,
-                    name_to_update=name_to_update)
-            except:
-                flash("Error!  Looks like there was a problem...try again!")
-                return render_template("dashboard.html", 
-                    form=form,
-                    name_to_update=name_to_update)
-        else:
-            db.session.commit()
-            flash("User Updated Successfully!")
-            return render_template("dashboard.html", 
-                form=form, 
-                name_to_update=name_to_update)
-    else:
-        return render_template("dashboard.html", 
-                form=form,
-                name_to_update=name_to_update,
-                id=id)
-
-    return render_template('dashboard.html')
+            profile_pic.save(os.path.join(app.config['UPLOAD_FOLDER'], pic_name))
+            user_to_update.profile_pic = pic_name
+        
+        # Check for password change
+        if form.current_password.data:
+            if user_to_update.check_password_correction(form.current_password.data):
+                user_to_update.password = form.new_password.data
+            else:
+                flash("Current password is incorrect.", category='danger')
+                return render_template("dashboard.html", form=form, user_to_update=user_to_update, id=id)
+        
+        db.session.commit()
+        flash("User Updated Successfully!", category='success')
+        return redirect(url_for('dashboard'))
+    
+    return render_template("dashboard.html", form=form, user_to_update=user_to_update, id=id)
 
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
 @login_required
 def update(id):
-    form = UserForm()
-    name_to_update = User.query.get_or_404(id)
-    if request.method == "POST":
-        name_to_update.email_address = request.form['email_address']
-        name_to_update.username = request.form['username']
-
-        # Check for profile pic
-        if request.files['profile_pic']:
-            name_to_update.profile_pic = request.files['profile_pic']
-
-            # Grab Image Name
-            pic_filename = secure_filename(name_to_update.profile_pic.filename)
-            # Set UUID
-            pic_name = str(uuid.uuid1()) + "_" + pic_filename
-            # Save That Image
-            saver = request.files['profile_pic']
-
-            # Change it to a string to save to db
-            name_to_update.profile_pic = pic_name
-            try:
-                db.session.commit()
-                saver.save(os.path.join(app.config['UPLOAD_FOLDER'], pic_name))
-                flash("User Updated Successfully!")
-                return redirect(url_for('dashboard'))
-            except:
-                flash("Error! Looks like there was a problem...try again!")
-                return redirect(url_for('dashboard'))
-        else:
-            db.session.commit()
-            flash("User Updated Successfully!")
-            return redirect(url_for('dashboard'))
-    else:
-        return render_template("update.html", 
-                form=form,
-                name_to_update=name_to_update,
-                id=id)
-
-@app.route('/delete/<int:id>', methods=['POST'])
-@login_required
-def delete(id):
-    user_to_delete = User.query.get_or_404(id)
-    if user_to_delete.id == current_user.id:
-        try:
-            db.session.delete(user_to_delete)
-            db.session.commit()
-            flash("User Deleted Successfully!", category='success')
-            return redirect(url_for('home_page'))
-        except:
-            flash("There was a problem deleting the user. Please try again.", category='danger')
-            return redirect(url_for('dashboard'))
-    else:
-        flash("You do not have permission to delete this user.", category='danger')
+    if id != current_user.id:
+        flash("You cannot edit another user's profile.", category='danger')
         return redirect(url_for('dashboard'))
-
-# Change password
-@app.route('/change_password', methods=['GET', 'POST'])
-@login_required
-def change_password():
-    form = ChangePasswordForm()
+    
+    form = UserForm()
+    user_to_update = User.query.get_or_404(id)
+    
     if form.validate_on_submit():
-        if current_user.check_password_correction(form.current_password.data):
-            current_user.password = form.new_password.data
-            db.session.commit()
-            flash("Password updated successfully!", category='success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash("Current password is incorrect. Please try again.", category='danger')
-    return render_template('user/change_password.html', form=form)
+        user_to_update.username = form.username.data
+        user_to_update.email_address = form.email.data
+        
+        if form.profile_pic.data:
+            pic_filename = secure_filename(form.profile_pic.data.filename)
+            pic_name = str(uuid.uuid1()) + "_" + pic_filename
+            form.profile_pic.data.save(os.path.join(app.config['UPLOAD_FOLDER'], pic_name))
+            user_to_update.profile_pic = pic_name
+        
+        db.session.commit()
+        flash("User Updated Successfully!", category='success')
+        return redirect(url_for('dashboard'))
+    
+    elif request.method == 'GET':
+        form.username.data = user_to_update.username
+        form.email.data = user_to_update.email_address
+    
+    return render_template('update.html', form=form, id=id, user_to_update=user_to_update)
 
 # -------------------------Admin area----------------------------
 

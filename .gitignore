@@ -1,7 +1,13 @@
 __pycache__/
 venv/
-.env
 *.pyc
-instance/
-.DS_Store
+*.pyo
 *.db
+instance/
+.env
+*.log
+.DS_Store
+.vscode/
+migrations/versions/*.pyc
+*.sqlite
+*.sqlite3

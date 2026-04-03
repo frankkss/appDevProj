@@ -1,12 +1,14 @@
-flask
-flask_bcrypt
-flask_login
-flask_migrate
-flask_sqlalchemy
-flask_wtf
+Flask==3.1.0
+Flask-SQLAlchemy==3.1.1
+Flask-Bcrypt==1.0.1
+Flask-Login==0.6.3
+Flask-Migrate==4.0.7
+Flask-WTF==1.2.2
+email_validator==2.2.0
+gunicorn==23.0.0
+psycopg2-binary==2.9.10
 pillow==11.0.0
 scipy==1.14.1
+numpy==1.24.3
 tensorflow==2.13.1
-email_validator
-Authlib Flask-OAuthlib
-python-dotenv
+keras==2.13.1
