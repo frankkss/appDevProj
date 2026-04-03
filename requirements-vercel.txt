@@ -1,0 +1,18 @@
+# Minimal requirements for Vercel deployment
+# Note: TensorFlow (400MB+) exceeds Vercel's limits
+# The ML prediction feature will need to be disabled or moved to a separate service
+
+Flask==3.1.0
+Flask-SQLAlchemy==3.1.1
+Flask-Bcrypt==1.0.1
+Flask-Login==0.6.3
+Flask-Migrate==4.0.7
+Flask-WTF==1.2.2
+email_validator==2.2.0
+gunicorn==23.0.0
+Werkzeug==3.1.3
+WTForms==3.2.1
+pillow==11.0.0
+
+# For production database (PostgreSQL recommended)
+# psycopg2-binary==2.9.10
