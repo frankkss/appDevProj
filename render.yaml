@@ -2,7 +2,6 @@ services:
   - type: web
     name: reliamed-app
     env: python
-    runtime: python-3.10.12
     buildCommand: ./build.sh
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
