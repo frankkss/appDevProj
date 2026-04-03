@@ -58,7 +58,7 @@ $ exec "$SHELL"
 # Install py 3.10.12
 $ pyenv install 3.10.12
 
-# set to global variable
+# set to global variable 
 $ pyenv global 3.10.12
 
 # check version if successfully changed

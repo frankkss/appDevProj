@@ -10,7 +10,7 @@ import uuid as uuid
 import os
 
 
-UPLOAD_FOLDER = 'static/images/'
+UPLOAD_FOLDER = '/workspaces/appDevProj/static/images'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/')
@@ -122,64 +122,76 @@ def logout_page():
     return redirect(url_for("home_page"))
 
 # -------------------------user area (Profile MAnagement)----------------------------
+# Edit user profile information
+# Change password
+# Upload and display profile pictures
+
 # Create Dashboard Page
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-	form = UserForm()
-	id = current_user.id
-	name_to_update = User.query.get_or_404(id)
-	if request.method == "POST":
-		name_to_update.name = request.form['name']
-		name_to_update.email = request.form['email']
-		name_to_update.username = request.form['username']
-		
+    if current_user.is_admin:
+        flash("Admins do not have access to the user dashboard.", category='danger')
+        return redirect(url_for('admin_home'))
+    
+    form = UserForm()
+    id = current_user.id
+    user_to_update = User.query.get_or_404(id)
+    if request.method == "POST":
+        user_to_update.username = request.form['username']
+        user_to_update.email_address = request.form['email']
+        
+        # Check for profile pic
+        if request.files['profile_pic']:
+            profile_pic = request.files['profile_pic']
+            pic_filename = secure_filename(profile_pic.filename)
+            pic_name = str(uuid.uuid1()) + "_" + pic_filename
+            profile_pic.save(os.path.join(app.config['UPLOAD_FOLDER'], pic_name))
+            user_to_update.profile_pic = pic_name
+        
+        # Check for password change
+        if form.current_password.data:
+            if user_to_update.check_password_correction(form.current_password.data):
+                user_to_update.password = form.new_password.data
+            else:
+                flash("Current password is incorrect.", category='danger')
+                return render_template("dashboard.html", form=form, user_to_update=user_to_update, id=id)
+        
+        db.session.commit()
+        flash("User Updated Successfully!", category='success')
+        return redirect(url_for('dashboard'))
+    
+    return render_template("dashboard.html", form=form, user_to_update=user_to_update, id=id)
 
-		# Check for profile pic
-		if request.files['profile_pic']:
-			name_to_update.profile_pic = request.files['profile_pic']
-
-			# Grab Image Name
-			pic_filename = secure_filename(name_to_update.profile_pic.filename)
-			# Set UUID
-			pic_name = str(uuid.uuid1()) + "_" + pic_filename
-			# Save That Image
-			saver = request.files['profile_pic']
-			
-
-			# Change it to a string to save to db
-			name_to_update.profile_pic = pic_name
-			try:
-				db.session.commit()
-				saver.save(os.path.join(app.config['UPLOAD_FOLDER'], pic_name))
-				flash("User Updated Successfully!")
-				return render_template("dashboard.html", 
-					form=form,
-					name_to_update = name_to_update)
-			except:
-				flash("Error!  Looks like there was a problem...try again!")
-				return render_template("dashboard.html", 
-					form=form,
-					name_to_update = name_to_update)
-		else:
-			db.session.commit()
-			flash("User Updated Successfully!")
-			return render_template("dashboard.html", 
-				form=form, 
-				name_to_update = name_to_update)
-	else:
-		return render_template("dashboard.html", 
-				form=form,
-				name_to_update = name_to_update,
-				id = id)
-
-	return render_template('dashboard.html')
-
-
-
-
-
-
+@app.route('/update/<int:id>', methods=['GET', 'POST'])
+@login_required
+def update(id):
+    if id != current_user.id:
+        flash("You cannot edit another user's profile.", category='danger')
+        return redirect(url_for('dashboard'))
+    
+    form = UserForm()
+    user_to_update = User.query.get_or_404(id)
+    
+    if form.validate_on_submit():
+        user_to_update.username = form.username.data
+        user_to_update.email_address = form.email.data
+        
+        if form.profile_pic.data:
+            pic_filename = secure_filename(form.profile_pic.data.filename)
+            pic_name = str(uuid.uuid1()) + "_" + pic_filename
+            form.profile_pic.data.save(os.path.join(app.config['UPLOAD_FOLDER'], pic_name))
+            user_to_update.profile_pic = pic_name
+        
+        db.session.commit()
+        flash("User Updated Successfully!", category='success')
+        return redirect(url_for('dashboard'))
+    
+    elif request.method == 'GET':
+        form.username.data = user_to_update.username
+        form.email.data = user_to_update.email_address
+    
+    return render_template('update.html', form=form, id=id, user_to_update=user_to_update)
 
 # -------------------------Admin area----------------------------
 

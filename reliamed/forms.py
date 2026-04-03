@@ -73,10 +73,10 @@ class MedicineForm(FlaskForm):
 
 #User form: Edit user profile information, Change password ,Upload and display profile pictures
 class UserForm(FlaskForm):
-    name = StringField("Name", validators=[DataRequired()])
     username = StringField("Username", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired()])
-    password_hash = PasswordField('Password', validators=[DataRequired(), EqualTo('password_hash2', message='Passwords Must Match!')])
-    password_hash2 = PasswordField('Confirm Password', validators=[DataRequired()])
     profile_pic = FileField("Profile Pic")
+    current_password = PasswordField('Current Password', validators=[Optional()])
+    new_password = PasswordField('New Password', validators=[Optional(), Length(min=6)])
+    confirm_new_password = PasswordField('Confirm New Password', validators=[Optional(), EqualTo('new_password', message='Passwords must match')])
     submit = SubmitField("Submit")
