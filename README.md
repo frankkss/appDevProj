@@ -62,3 +62,23 @@ $ set FLASK_APP=app.py
 ```
 $ flask run
 ```
+
+## Default Admin Credentials
+
+After setting up the database, use these credentials to access the admin panel:
+
+- **Admin URL:** `http://localhost:5000/admin-login`
+- **Username:** `admin`
+- **Password:** `admin123`
+
+⚠️ **Important:** Change the default password after first login for security.
+
+## Features
+
+- User registration and authentication
+- Profile management with image upload
+- Medicine marketplace
+- ML-powered medicine classification
+- Admin panel for user and medicine management
+- Google OAuth integration
+
