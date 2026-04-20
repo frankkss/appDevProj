@@ -3,7 +3,7 @@
 ```
 This project is a web application named "Reliamed" designed to manage pharmaceuticals and user profiles. 
 It includes features for user registration, login, profile management, product purchase and sale, and image classification for medicine identification. 
-The application is built using Flask, a lightweight web framework for Python, and integrates a machine learning model for image classification.
+The application is built using Flask, a lightweight web framework for Python, and integrates a machine learning model for limited pharmaceutical image classification.
 ```
 
 
